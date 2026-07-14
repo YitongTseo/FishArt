@@ -41,10 +41,9 @@ p-hacking looks like. So here is the effect at *every* bar, rather than a defenc
 | ρ (new masks) | +0.20 | +0.25 | +0.27 | +0.31 | +0.38 | +0.40 | +0.41 |
 | p | 0.016 | 0.004 | 0.002 | 0.0004 | <0.0001 | <0.0001 | <0.0001 |
 
-Plotted in `fig5_threshold.png`, and draggable in the interactive gallery (the data-quality
-slider refits the line, the bootstrap band and ρ live on whoever survives the bar).
-The curve is **monotone attenuation toward zero as the bar drops, significant at every bar
-from 1 to 25, with no sign flip and no threshold at which the effect appears from nowhere**. That is the signature of measurement
+Plotted in `fig5_threshold.png`. The curve is **monotone attenuation toward zero as the bar
+drops, significant at every bar from 1 to 25, with no sign flip and no threshold at which the
+effect appears from nowhere**. That is the signature of measurement
 noise diluting a real effect — a species' score is a median over n photos, and at n=1 that
 "median" is one photo, where a fish photographed in a bucket counts the same as a portrait.
 It is *not* the signature of a result conjured by a filter. The honest summary: **the effect
@@ -54,14 +53,38 @@ The principled alternative to a cliff is to keep every species and weight it by 
 **ρ = +0.29, p = 0.0008** across all 141 species. That is the number to quote if you distrust
 the cliff, and it sits exactly where the sweep says it should.
 
-**The gallery now opens the floodgates** (`MINIMG=1`): all **133 species with a cut-out**, up
-from 123, including 18 the old rule excluded — several resting on a single photo (kribensis,
-fairy cichlid, electric blue ahli). The figure's caption therefore honestly reports the
-weaker all-species number, **ρ = +0.23, p = 0.009**, and the interactive gallery flags any
-fish measured on <15 photos as a noisy estimate on its card. Caveat worth keeping in view:
-under the floodgates the **PGLS lands exactly on p = 0.050** — with phylogeny controlled *and*
-every noisy species admitted, the effect is at the edge of significance, not comfortably
-inside it.
+**The ≥15 rule therefore stays.** The floodgates version (`MINIMG=1`, 133 species, ρ = +0.23)
+was built, looked at, and rolled back: it buys nothing but noise, and the sweep above is the
+evidence for the rule rather than a defence of it. The gallery plots the **115 species** that
+clear the bar *and* have a cut-out — **ρ = +0.39, p < 0.001**. The one number to stay humble
+about is the floodgates PGLS, **exactly p = 0.050**: with phylogeny controlled *and* every
+noisy species admitted, the effect is at the edge of significance, not comfortably inside it.
+
+### Six cut-outs replaced by hand — `repick.py`
+
+The cascade still lost six species to bad picks, and they are worth recording because each
+defeats a *different* stage of it:
+
+| species | what the auto-pick chose | why it won | replaced with |
+|---|---|---|---|
+| Foxface rabbitfish | a yellow body with **no face** | it scored *highest of all* (0.93) — a truncated mask is a beautifully clean, convex blob | `079`, face intact |
+| Moorish idol | a **rock**, with the fish beside it | the classifier veto only *discounts* reef furniture, it never hard-rejects it | `054`, whole fish + filament |
+| Banggai cardinalfish | a shredded merge of a **school** | schooling fish fuse into one fragmented mask | `034`, single fish |
+| Harlequin rasbora | fish + **plastic tank** | the tank was counted as body | `000`, clean |
+| Green swordtail | fish in a **specimen tray** | same | `015`, male with sword |
+| Milkfish | a **corpse on a deck** | its entire iNaturalist set is fishery shots | `001`, at least a clean specimen |
+
+The sharpest lesson is the foxface: **the shape score rewards exactly the wrong thing when
+segmentation truncates** — a fish that loses its head becomes smoother, more convex and
+*higher*-scoring. Quality metrics that reward "clean blob" cannot detect a clean blob that is
+missing the animal. `repick.py` is the escape hatch: it segments **every** photo of a species
+(not the 12-photo shortlist), contact-sheets the candidates, and lets a human choose. Six of
+156 needing that is a ~4% manual-override rate — worth stating plainly rather than implying
+the pipeline is fully automatic.
+
+The Banggai now falls *below* the ≥15 bar under the stricter metrics (too many of its photos
+are schools, which the veto rejects), so its repaired cut-out is not currently in the gallery.
+It is kept for whenever the bar moves.
 
 Two bugs fixed in passing: `fig4_fish_gallery.py` and the web page both **hard-coded
 "p < 0.001"** into the caption, which was false the moment the sample changed. They now print

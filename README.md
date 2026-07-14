@@ -15,10 +15,6 @@ for a species, or mute a mating behaviour to see what the rest of the plane look
 it. Linkable per fish, too: [#Synchiropus_splendidus](https://yitongtseo.github.io/FishArt/#Synchiropus_splendidus)
 drops you on the mandarinfish.
 
-It also carries the **data-quality slider**: drag the bar from "let everything in" to "only the
-best-photographed" and the species below it grey out while the trend line, its bootstrap band
-and ρ are refitted, in the browser, on whoever survives. Watching ρ climb from +0.23 to +0.41
-as the noisy fish fade is the most honest way to see what a quality threshold actually buys.
 
 ## Headline result
 
@@ -36,11 +32,12 @@ range rather than the flattering end of it (metrics measured on the good segment
 | all species, weighted by √photos | **+0.29** | 0.0008 | — |
 | the 118 with ≥ 15 clean photos | **+0.38** | <0.0001 | 0.001 |
 
-The gallery above plots **everything** — all 133 species that have a cut-out, including ones
-resting on a single photo — so it quotes the honest all-species number, ρ = +0.23, p = 0.009.
-The effect is real at *every* photo-count threshold and never flips sign; the threshold buys
-precision, not existence (`threshold_sweep.py`). At the strictest reading — phylogeny
-controlled *and* every noisy species admitted — it sits right on the edge, PGLS p = 0.050.
+The gallery above plots the **115 species that clear the ≥ 15-photo bar and have a cut-out**
+(ρ = +0.39, p < 0.001). The bar is kept because the sweep below earns it, not because it
+flatters: the effect is real at *every* threshold and never flips sign, so the bar buys
+precision, not existence. The number to be humble about is the bottom row of that table — with
+phylogeny controlled *and* every noisy species admitted, the effect sits right on the edge at
+PGLS p = 0.050.
 
 `FINDINGS.md` tells the full and honest story, **including where the result weakens** — it
 does not hold in the small, reef-skewed sex-annotated subset. Read that before citing this.
@@ -119,9 +116,9 @@ squares) with an ML-estimated Pagel's λ, so shared ancestry is modelled in the 
 rather than ignored. This is what separates the real colour-variety effect from the
 body-shape artifacts.
 
-### Data-quality rule — tested, then relaxed
+### Data-quality rule — put on trial, and kept
 
-The figures used to require **≥ 15 clean close-up images** per species, defended on the
+The figures require **≥ 15 clean close-up images** per species, originally defended on the
 grounds that filtering *strengthened* the signal. But "the result improved when I dropped
 data" is also exactly what p-hacking looks like, so the rule was put on trial rather than
 defended: `threshold_sweep.py` reports the effect at **every** bar, including none at all.
@@ -136,12 +133,10 @@ what a filtering artifact looks like. Note also that the new masks sit above the
 **every** bar: better segmentation and a higher bar are two independent improvements, not the
 same one twice.
 
-So **the gallery now lets everything in** and quotes the weaker, honest all-species number.
-The interactive version flags any fish measured on < 15 photos as a noisy estimate — and it
-has a **slider**: drag the data-quality bar from 1 to 25 and watch the excluded fish grey out
-while the trend line, its confidence band and ρ are refitted live on the survivors. That is
-the whole argument in one gesture. If you distrust cliffs entirely, keep every species and
-weight by √photos: ρ = +0.29, p = 0.0008.
+So the rule **stays** — it is a precision choice, not a load-bearing one, and the figures say
+so out loud by reporting the whole curve rather than the chosen point. If you distrust cliffs
+entirely, the cliff-free answer agrees: keep every species and weight it by √photos and you
+get ρ = +0.29, p = 0.0008.
 
 ---
 
@@ -228,14 +223,23 @@ python compare_segmenters.py   # old vs new masks, every metric
 python threshold_sweep.py      # the >=15 rule, at every threshold
 python fig5_threshold.py       # that sweep as a figure -> fig5_threshold.png
 
-# the figures, on the good masks, with every species let in
-METRICS=fish_metrics_isnet.csv MINIMG=1 python fig4_fish_gallery.py
-METRICS=fish_metrics_isnet.csv MINIMG=1 python build_web.py   # -> ../docs/ (GitHub Pages)
+# the figures, on the good masks, at the >=15-photo bar
+METRICS=fish_metrics_isnet.csv MINIMG=15 python fig4_fish_gallery.py
+METRICS=fish_metrics_isnet.csv MINIMG=15 python build_web.py  # -> ../docs/ (GitHub Pages)
 ```
 
 `METRICS` selects the metrics table (default `fish_metrics.csv`) and `MINIMG` the photo-count
 bar (default 15; `MINIMG=1` opens the floodgates). `phylo.py` honours both, so every number in
 the tables above is reproducible by setting those two variables.
+
+When the automatic cascade picks a bad cut-out anyway, `repick.py` segments **every** photo of
+one species and lays the candidates out as a contact sheet to be chosen by eye — it proposes,
+you dispose:
+
+```bash
+python repick.py --sheet "Zanclus cornutus"        # -> repick/Zanclus_cornutus.png
+python repick.py --pick  "Zanclus cornutus" 054    # -> data/cutouts/Zanclus_cornutus.png
+```
 
 `build_web.py` needs nothing beyond the committed cut-outs and `fish_metrics.csv`, and it
 recomputes the wash, the jitter, the trend and the label placement with the same seed and the
@@ -259,6 +263,7 @@ regenerable.
 | `compare_segmenters.py` | old vs new masks, every metric — does the segmenter change the answer? |
 | `threshold_sweep.py` | the ≥15-photo rule at every threshold, plus a √photos-weighted alternative |
 | `fig5_threshold.py` → `fig5_threshold.png` | that sweep as a figure: ρ vs the bar, old masks vs new |
+| `repick.py` | segment every photo of one species, contact-sheet the candidates, pick a cut-out by eye |
 | `phylo.py` | PGLS / Pagel's λ against the Fish Tree of Life |
 | `sex_probe.py`, `fetch_sexed.py`, `sexed_analyze.py` | the sex-annotated subset and dichromatism |
 | `clean_figures.py` | the three analytical figures |

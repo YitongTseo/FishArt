@@ -13,9 +13,7 @@ import warnings; warnings.filterwarnings("ignore")
 import os, numpy as np, pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
-from matplotlib.patches import Patch
 import matplotlib.patheffects as pe
-from scipy import stats
 from scipy.ndimage import gaussian_filter
 from fish_data import SPECIES, MODE_ORDER
 
@@ -174,50 +172,44 @@ for xi, yi in zip(jx, y):
 inside = ((GX > XLIM[0]+1.9) & (GX < XLIM[1]-1.9) &
           (GY > YLIM[0]+0.15) & (GY < YLIM[1]-0.12))
 
-placed, labeled = [], []
+counts = q["mating_mode"].value_counts()
+placed = []
 for mi, mode in enumerate(MODE_ORDER):
+    if counts.get(mode, 0) == 0:
+        continue          # a mode with no species left has no pigment — naming it would be a lie
     a = alphas[mode]
     core = a/max(a.max(), 1e-9)
-    own = (dom == mi) & (core > 0.60) & (mass > 0.60) & inside
-    if not own.any():                       # nowhere it clearly owns -> relax once
-        own = (dom == mi) & (core > 0.35) & inside
-    if not own.any():
-        continue
+    # Every mode that HAS fish gets named in the plot — none is exiled to a legend swatch.
+    # Try strictest first, then relax; the last candidate is simply "wherever this mode's
+    # own pigment is thickest, inside the frame", which always exists.
+    for own in ((dom == mi) & (core > 0.60) & (mass > 0.60) & inside,
+                (dom == mi) & (core > 0.35) & inside,
+                (core > 0.35) & inside,
+                inside):
+        if own.any():
+            break
     # sit in open wash (far from any fish) but stay in the heart of the colour
     score = np.where(own, fishd + 1.6*core, -np.inf)
     for px, py in placed:                                  # keep labels off each other
         score -= 6.0*np.exp(-0.5*(((GX-px)/1.1)**2 + ((GY-py)/0.34)**2))
     j, i = np.unravel_index(np.argmax(score), score.shape)
     lx, ly = gx[i], gy[j]
-    placed.append((lx, ly)); labeled.append(mode)
+    placed.append((lx, ly))
     ax.text(lx, ly, mode, fontsize=17, style="italic", color=darken(PAL[mode]),
             ha="center", va="center", zorder=5,
             path_effects=[pe.withStroke(linewidth=4.5, foreground=PAPER, alpha=0.85)])
-
-missing = [m for m in MODE_ORDER if m not in labeled]
 
 # ------------------------------------------------------------------ furniture
 ax.set_xticks(range(0,11,2))
 ax.tick_params(labelsize=16, length=5, pad=6)
 ax.spines["top"].set_visible(False); ax.spines["right"].set_visible(False)
 ax.grid(color=GRID, lw=0.6, alpha=0.35, zorder=0.5); ax.set_axisbelow(False)
-ax.set_xlabel("mate-choice index      random / broadcast spawning   to   strict female choice",
+ax.set_xlabel("degree of mate-choice      random / broadcast spawning   to   strict female choice",
               fontsize=21, labelpad=14)
-ax.set_ylabel("colour variety   —   distinct hues worn by the fish", fontsize=21, labelpad=14)
+ax.set_ylabel("colour variety", fontsize=21, labelpad=14)
 
-rho, p = stats.spearmanr(x, y)
-pstr = "p < 0.001" if p < 0.001 else f"p = {p:.3f}"     # never hard-code the p-value
-fig.text(0.055, 0.947, f"each fish sits at its own mate-choice and colour-variety   ·   {len(q)} species   ·   "
-         f"the palette widens rightward  (ρ = {rho:+.2f}, {pstr})", fontsize=19, color="#5a5346")
-fig.text(0.055, 0.917, "background colour = the mating behaviour that dominates that region of the plane;   "
-         "the band is the ±1 SD spread of species about the trend",
-         fontsize=15, color="#8a8172", style="italic")
-
-if missing:   # any mode with no room to be named in-plot still gets a swatch below
-    handles = [Patch(facecolor=PAL[m], edgecolor="none", alpha=0.8, label=m) for m in missing]
-    ax.legend(handles=handles, frameon=False, loc="lower center", ncol=len(missing),
-              fontsize=15, bbox_to_anchor=(0.5, -0.115), handlelength=1.6, handleheight=1.0)
-fig.subplots_adjust(left=0.062, right=0.975, top=0.895,
-                    bottom=0.115 if missing else 0.085)
+# No title, no strap-line, no legend: every mating behaviour names itself in the plot, and the
+# figure is left to be looked at rather than read.
+fig.subplots_adjust(left=0.062, right=0.975, top=0.975, bottom=0.085)
 fig.savefig(os.path.join(ROOT, OUTPNG), dpi=145, facecolor=PAPER)
 print(f"wrote {OUTPNG}  ({len(q)} fish, cutouts from {os.path.basename(CUT)})")

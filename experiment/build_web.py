@@ -125,15 +125,21 @@ for xi, yi in zip(jx, y):
 inside = ((GX > XLIM[0]+1.9) & (GX < XLIM[1]-1.9) &
           (GY > YLIM[0]+0.15) & (GY < YLIM[1]-0.12))
 
+counts = q["mating_mode"].value_counts()
+MODES_PRESENT = [m for m in MODE_ORDER if counts.get(m, 0) > 0]   # an empty mode is not a category
+
 labels, placed = [], []
 for mi, mode in enumerate(MODE_ORDER):
+    if counts.get(mode, 0) == 0:
+        continue          # no species left in this mode -> no pigment, no label, no legend chip
     a = alphas[mode]
     core = a/max(a.max(), 1e-9)
-    own = (dom == mi) & (core > 0.60) & (mass > 0.60) & inside
-    if not own.any():
-        own = (dom == mi) & (core > 0.35) & inside
-    if not own.any():
-        continue
+    for own in ((dom == mi) & (core > 0.60) & (mass > 0.60) & inside,
+                (dom == mi) & (core > 0.35) & inside,
+                (core > 0.35) & inside,
+                inside):
+        if own.any():
+            break
     score = np.where(own, fishd + 1.6*core, -np.inf)
     for px, py in placed:
         score -= 6.0*np.exp(-0.5*(((GX-px)/1.1)**2 + ((GY-py)/0.34)**2))
@@ -170,7 +176,7 @@ for i in range(len(q)):
 rho, p = stats.spearmanr(x, y)
 payload = {
     "xlim": list(XLIM), "ylim": list(YLIM),
-    "palette": PAL, "modeOrder": MODE_ORDER,
+    "palette": PAL, "modeOrder": MODES_PRESENT,
     "paper": PAPER, "ink": INK, "accent": ACCENT, "grid": GRID,
     "rho": float(rho), "p": float(p), "n": len(q),
     "trend": {"x": xl.round(4).tolist(), "fit": fit.round(4).tolist(),
