@@ -1,0 +1,11 @@
+scientific,common,score,src,frac,purity,extent,aspect,solidity,rectness,nborder,skin,sat,shape,p_fish
+Trigonostigma heteromorpha,Harlequin rasbora,0.129,028.jpg,0.211,0.998,0.558,1.153,0.693,0.567,0.0,0.243,0.179,0.231,0.34
+Zanclus cornutus,Moorish idol,0.236,067.jpg,0.135,0.891,0.587,1.667,0.909,0.674,0.0,0.0,0.407,0.369,0.409
+Elacatinus oceanops,Neon goby,0.114,058.jpg,0.229,0.982,0.736,1.312,0.932,0.742,0.0,0.0,0.613,0.496,0.067
+Pterapogon kauderni,Banggai cardinalfish,0.155,049.jpg,0.15,1.0,0.519,0.973,0.786,0.548,0.0,0.263,0.506,0.294,0.316
+Oxycirrhites typus,Longnose hawkfish,0.081,022.jpg,0.11,1.0,0.377,1.876,0.673,0.449,0.0,0.501,0.573,0.129,0.401
+Selar crumenophthalmus,Bigeye scad,0.301,055.jpg,0.379,0.997,0.629,1.027,0.732,0.649,0.0,0.049,0.134,0.333,0.628
+Sardinops sagax,Pacific sardine,0.154,010.jpg,0.214,1.0,0.475,1.024,0.744,0.551,0.0,0.014,0.074,0.309,0.29
+Gomphosus varius,Bird wrasse,0.309,030.jpg,0.229,1.0,0.565,2.256,0.809,0.607,0.0,0.05,0.33,0.493,0.398
+Synchiropus ocellatus,Scooter dragonet,0.292,068.jpg,0.206,1.0,0.578,1.182,0.863,0.639,0.0,0.04,0.286,0.495,0.367
+Hippocampus erectus,Lined seahorse,0.135,055.jpg,0.164,0.985,0.562,1.614,0.795,0.584,0.0,0.062,0.372,0.519,0.092

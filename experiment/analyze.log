@@ -1,0 +1,21 @@
+n = 59 species
+metric                   rho        p
+colorfulness          -0.088    0.508
+hue_entropy           +0.181    0.170
+saturation            -0.041    0.760
+high_chroma_frac      -0.071    0.592
+n_color_clusters      -0.071    0.595
+contrast              -0.134    0.312
+edge_density          +0.114    0.390
+aspect_ratio          +0.089    0.505
+body_depth            -0.048    0.719
+solidity              -0.019    0.884
+silhouette_cplx       +0.050    0.705
+extent                -0.070    0.598
+strike_colour         -0.056    0.671
+shape_elaboration     -0.006    0.965
+distinct_colour       +0.049    0.715
+distinct_shape        +0.078    0.556
+distinct_overall      -0.001    0.993
+
+wrote fig_correlation_summary.png, fig_scatter_grid.png, fish_analysed.csv

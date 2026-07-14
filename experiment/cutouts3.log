@@ -1,0 +1,177 @@
+OMP: Info #276: omp_set_nested routine deprecated, please use omp_set_max_active_levels instead.
+[  0] ok     Indian oil sardine                 score=0.288 asp=2.61 sol=0.87
+[  1] ok     Skipjack tuna                      score=0.658 asp=2.09 sol=0.89
+[  2] ok     Red snapper                        score=0.512 asp=2.68 sol=0.86
+[  3] ok     Nassau grouper                     score=0.996 asp=1.76 sol=0.91
+[  4] ok     Atlantic blue tang                 score=0.904 asp=1.57 sol=0.81
+[  5] ok     Blue tang                          score=0.896 asp=1.65 sol=0.87
+[  6] ok     Yellow tang                        score=1.257 asp=1.74 sol=0.89
+[  7] ok     Yellowfin goatfish                 score=0.337 asp=1.02 sol=0.71
+[  8] ok     Cardinal tetra                     score=0.480 asp=2.57 sol=0.77
+[  9] REJECT Neon tetra                         score=0.009 
+[ 10] ok     Zebrafish                          score=0.337 asp=1.96 sol=0.81
+[ 11] ok     Tiger barb                         score=0.368 asp=1.62 sol=0.75
+[ 12] ok     Harlequin rasbora                  score=0.231 asp=1.15 sol=0.69
+[ 13] ok     Moorish idol                       score=0.369 asp=1.67 sol=0.91
+[ 14] ok     Red lionfish                       score=0.577 asp=1.35 sol=0.84
+[ 15] ok     Threadfin butterflyfish            score=0.787 asp=1.56 sol=0.91
+[ 16] ok     Raccoon butterflyfish              score=0.904 asp=1.21 sol=0.84
+[ 17] ok     Clown anemonefish                  score=0.563 asp=1.28 sol=0.84
+[ 18] ok     Orange clownfish                   score=0.642 asp=1.33 sol=0.82
+[ 19] ok     Blue-green chromis                 score=1.047 asp=1.88 sol=0.76
+[ 20] ok     Humbug dascyllus                   score=0.660 asp=1.63 sol=0.88
+[ 21] ok     Sapphire devil                     score=1.242 asp=1.90 sol=0.91
+[ 22] ok     Neon goby                          score=0.496 asp=1.31 sol=0.93
+[ 23] ok     Bicolor blenny                     score=0.420 asp=3.11 sol=0.88
+[ 24] ok     Banggai cardinalfish               score=0.439 asp=0.88 sol=0.80
+[ 25] ok     Clown triggerfish                  score=0.798 asp=1.71 sol=0.84
+[ 26] ok     Picasso triggerfish                score=0.854 asp=1.74 sol=0.89
+[ 27] ok     Yellow boxfish                     score=0.964 asp=1.54 sol=0.91
+[ 28] ok     Longnose hawkfish                  score=0.381 asp=1.57 sol=0.75
+[ 29] ok     Emperor angelfish                  score=0.904 asp=1.91 sol=0.84
+[ 30] ok     Bicolor angelfish                  score=1.220 asp=1.73 sol=0.83
+[ 31] ok     Bluehead wrasse                    score=0.756 asp=1.99 sol=0.92
+[ 32] ok     Cleaner wrasse                     score=0.798 asp=1.38 sol=0.80
+[ 33] ok     Quoy's parrotfish                  score=0.700 asp=1.39 sol=0.91
+[ 34] ok     Sea goldie (anthias)               score=0.689 asp=2.35 sol=0.79
+[ 35] ok     Frontosa cichlid                   score=0.394 asp=2.28 sol=0.95
+[ 36] ok     Discus                             score=0.374 asp=1.11 sol=0.91
+[ 37] ok     Freshwater angelfish               score=0.336 asp=1.42 sol=0.66
+[ 38] REJECT Ram cichlid                        score=-1.000 
+[ 39] ok     Cockatoo dwarf cichlid             score=0.194 asp=1.69 sol=0.82
+[ 40] ok     Fairy cichlid                      score=0.184 asp=1.63 sol=0.71
+[ 41] ok     Blunthead cichlid                  score=0.321 asp=2.33 sol=0.96
+[ 42] ok     Zebra mbuna                        score=0.569 asp=2.41 sol=0.85
+[ 43] REJECT Powder-blue mbuna                  score=-1.000 
+[ 44] ok     Peacock cichlid                    score=0.583 asp=1.78 sol=0.76
+[ 45] REJECT Boeseman's rainbowfish             score=-1.000 
+[ 46] REJECT Dwarf neon rainbowfish             score=-1.000 
+[ 47] ok     Dwarf gourami                      score=0.713 asp=2.05 sol=0.91
+[ 48] ok     Three-spot gourami                 score=0.521 asp=2.62 sol=0.90
+[ 49] ok     Paradise fish                      score=0.428 asp=2.70 sol=0.80
+[ 50] ok     Siamese fighting fish              score=0.773 asp=2.01 sol=0.83
+[ 51] ok     Three-spined stickleback           score=0.454 asp=2.11 sol=0.80
+[ 52] ok     Sailfin molly                      score=0.463 asp=2.18 sol=0.90
+[ 53] ok     Southern platyfish                 score=0.515 asp=2.23 sol=0.83
+[ 54] ok     Green swordtail                    score=0.432 asp=2.37 sol=0.80
+[ 55] ok     Guppy                              score=0.260 asp=3.13 sol=0.82
+[ 56] REJECT Endler's livebearer                score=0.023 
+[ 57] ok     Solor fairy wrasse                 score=0.856 asp=1.92 sol=0.84
+[ 58] ok     Carpenter's flasher wrasse         score=0.605 asp=1.41 sol=0.73
+[ 59] ok     Mandarinfish                       score=0.818 asp=1.62 sol=0.86
+[ 60] ok     Psychedelic mandarin               score=0.608 asp=1.54 sol=0.84
+[ 61] ok     Common seahorse                    score=0.498 asp=1.09 sol=0.78
+[ 62] REJECT White-spotted pufferfish           score=0.000 empty
+[ 63] ok     Indian mackerel                    score=0.238 asp=1.36 sol=0.77
+[ 64] ok     Bigeye scad                        score=0.529 asp=1.01 sol=0.95
+[ 65] ok     Giant trevally                     score=0.592 asp=2.04 sol=0.71
+[ 66] ok     Flathead mullet                    score=0.568 asp=2.47 sol=0.70
+[ 67] ok     Milkfish                           score=0.387 asp=2.50 sol=0.88
+[ 68] ok     Great barracuda                    score=0.755 asp=1.78 sol=0.81
+[ 69] ok     Pacific sardine                    score=0.309 asp=1.02 sol=0.74
+[ 70] ok     Bluestripe snapper                 score=0.841 asp=2.31 sol=0.80
+[ 71] ok     Bluestriped grunt                  score=1.064 asp=1.85 sol=0.92
+[ 72] ok     Powder blue tang                   score=1.052 asp=1.46 sol=0.81
+[ 73] ok     Purple tang                        score=0.872 asp=1.44 sol=0.88
+[ 74] ok     Sailfin tang                       score=0.737 asp=1.38 sol=0.94
+[ 75] ok     Orangespine unicornfish            score=0.671 asp=2.71 sol=0.74
+[ 76] ok     Foxface rabbitfish                 score=1.212 asp=1.78 sol=0.88
+[ 77] ok     Masked butterflyfish               score=0.915 asp=1.38 sol=0.93
+[ 78] ok     Pennant bannerfish                 score=0.556 asp=1.13 sol=0.93
+[ 79] ok     Longnose butterflyfish             score=1.079 asp=1.24 sol=0.85
+[ 80] ok     Flame angelfish                    score=1.013 asp=1.49 sol=0.89
+[ 81] ok     Swallowtail angelfish              score=0.923 asp=2.09 sol=0.83
+[ 82] ok     Queen angelfish                    score=0.934 asp=1.84 sol=0.77
+[ 83] ok     Regal angelfish                    score=1.046 asp=1.85 sol=0.89
+[ 84] ok     French angelfish                   score=0.696 asp=1.45 sol=0.82
+[ 85] ok     Rock beauty                        score=1.119 asp=1.74 sol=0.87
+[ 86] ok     Yellowtail coris                   score=0.892 asp=1.62 sol=0.91
+[ 87] ok     Bird wrasse                        score=0.590 asp=3.00 sol=0.79
+[ 88] ok     Leopard wrasse                     score=0.788 asp=1.92 sol=0.88
+[ 89] ok     Spanish hogfish                    score=0.754 asp=2.00 sol=0.92
+[ 90] ok     Sixline wrasse                     score=0.592 asp=2.26 sol=0.89
+[ 91] ok     Filamented flasher wrasse          score=0.631 asp=1.89 sol=0.83
+[ 92] ok     Longfin fairy wrasse               score=0.379 asp=1.81 sol=1.00
+[ 93] ok     Stoplight parrotfish               score=0.754 asp=1.66 sol=0.92
+[ 94] ok     Bullethead parrotfish              score=0.849 asp=2.47 sol=0.87
+[ 95] ok     Maroon clownfish                   score=0.879 asp=1.38 sol=0.93
+[ 96] ok     Tomato clownfish                   score=0.826 asp=1.61 sol=0.86
+[ 97] ok     Blue chromis                       score=0.942 asp=2.24 sol=0.72
+[ 98] ok     Bicolor damselfish                 score=0.638 asp=2.46 sol=0.86
+[ 99] ok     Royal gramma                       score=0.975 asp=1.15 sol=0.87
+[100] ok     Orchid dottyback                   score=0.647 asp=2.60 sol=0.79
+[101] ok     Royal dottyback                    score=1.054 asp=2.37 sol=0.84
+[102] ok     Purple anthias                     score=0.837 asp=1.71 sol=0.80
+[103] ok     Peach anthias                      score=0.357 asp=1.98 sol=0.70
+[104] ok     Barred hamlet                      score=0.742 asp=1.45 sol=0.93
+[105] ok     Harlequin bass                     score=0.556 asp=2.55 sol=0.85
+[106] ok     Fire goby                          score=0.161 asp=3.14 sol=0.93
+[107] ok     Elegant firefish                   score=0.421 asp=2.39 sol=0.72
+[108] ok     Yellow watchman goby               score=0.502 asp=1.79 sol=0.79
+[109] ok     Yellowhead jawfish                 score=0.513 asp=1.45 sol=0.92
+[110] ok     Scooter dragonet                   score=0.560 asp=1.90 sol=0.84
+[111] ok     Spotted boxfish                    score=0.597 asp=2.29 sol=0.92
+[112] ok     Redtooth triggerfish               score=0.976 asp=1.43 sol=0.76
+[113] ok     Orange-lined triggerfish           score=0.764 asp=2.00 sol=0.86
+[114] ok     Valentini puffer                   score=0.566 asp=2.56 sol=0.89
+[115] ok     Lined seahorse                     score=0.519 asp=1.61 sol=0.79
+[116] ok     Longsnout seahorse                 score=0.458 asp=1.06 sol=0.72
+[117] REJECT Banded pipefish                    score=0.079 
+[118] ok     Burton's mouthbrooder              score=0.475 asp=2.44 sol=0.85
+[119] REJECT Pundamilia                         score=-1.000 
+[120] ok     Electric blue ahli                 score=0.650 asp=2.85 sol=0.90
+[121] ok     Redfin hap                         score=0.678 asp=2.31 sol=0.83
+[122] ok     Yellow lab                         score=0.747 asp=2.37 sol=0.93
+[123] ok     Auratus cichlid                    score=0.573 asp=2.20 sol=0.76
+[124] ok     Fuelleborni mbuna                  score=0.714 asp=2.32 sol=0.89
+[125] ok     Venustus                           score=0.479 asp=2.12 sol=0.84
+[126] ok     Marlier's julie                    score=0.146 asp=2.17 sol=0.89
+[127] REJECT Shell-dweller cichlid              score=-1.000 
+[128] ok     Daffodil cichlid                   score=0.219 asp=2.32 sol=0.75
+[129] ok     Midas cichlid                      score=1.142 asp=1.74 sol=0.83
+[130] ok     Firemouth cichlid                  score=0.483 asp=1.93 sol=0.78
+[131] ok     Kribensis                          score=0.319 asp=2.68 sol=0.90
+[132] ok     Jewel cichlid                      score=0.566 asp=1.91 sol=0.82
+[133] ok     Blue acara                         score=0.573 asp=1.69 sol=0.80
+[134] ok     Eartheater cichlid                 score=0.453 asp=1.55 sol=0.83
+[135] REJECT Rachow's nothobranch               score=-1.000 
+[136] ok     Turquoise killifish                score=0.227 asp=2.82 sol=0.88
+[137] REJECT Blue lyretail killifish            score=-1.000 
+[138] ok     Lyretail killifish                 score=0.257 asp=2.21 sol=0.86
+[139] ok     Variable platyfish                 score=0.517 asp=1.85 sol=0.76
+[140] ok     Common molly                       score=0.409 asp=1.96 sol=0.78
+[141] REJECT Metallic livebearer                score=-1.000 
+[142] ok     Western mosquitofish               score=0.241 asp=2.91 sol=0.78
+[143] REJECT Red rainbowfish                    score=0.059 
+[144] REJECT Forktail blue-eye                  score=-1.000 
+[145] ok     Pearl gourami                      score=0.542 asp=2.17 sol=0.88
+[146] ok     Honey gourami                      score=0.365 asp=1.36 sol=0.91
+[147] ok     Chocolate gourami                  score=0.454 asp=2.42 sol=0.91
+[148] ok     Peaceful betta                     score=0.622 asp=1.79 sol=0.73
+[149] REJECT Emperor tetra                      score=-1.000 
+[150] ok     Lemon tetra                        score=0.121 asp=2.39 sol=0.72
+[151] REJECT Glowlight tetra                    score=0.000 empty
+[152] ok     Rosy barb                          score=0.327 asp=2.51 sol=0.85
+[153] REJECT Celestial pearl danio              score=-1.000 
+[154] ok     Bronze cory                        score=0.779 asp=1.96 sol=0.91
+[155] ok     Bristlenose pleco                  score=0.288 asp=0.63 sol=0.79
+
+138 cut-outs accepted, 18 species rejected
+   reject: Neon tetra 0.009 low score
+   reject: Ram cichlid -1 low score
+   reject: Powder-blue mbuna -1 low score
+   reject: Boeseman's rainbowfish -1 low score
+   reject: Dwarf neon rainbowfish -1 low score
+   reject: Endler's livebearer 0.023 low score
+   reject: White-spotted pufferfish 0.0 empty
+   reject: Banded pipefish 0.079 low score
+   reject: Pundamilia -1 low score
+   reject: Shell-dweller cichlid -1 low score
+   reject: Rachow's nothobranch -1 low score
+   reject: Blue lyretail killifish -1 low score
+   reject: Metallic livebearer -1 low score
+   reject: Red rainbowfish 0.059 low score
+   reject: Forktail blue-eye -1 low score
+   reject: Emperor tetra -1 low score
+   reject: Glowlight tetra 0.0 empty
+   reject: Celestial pearl danio -1 low score

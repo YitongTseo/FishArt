@@ -1,0 +1,16 @@
+OMP: Info #276: omp_set_nested routine deprecated, please use omp_set_max_active_levels instead.
+=== MALE-ONLY striking-ness vs mate choice ===
+n = 30 species (>=6 male images)
+  male_hue             rho=-0.105 p=0.581
+  male_colorfulness    rho=-0.365 p=0.047
+  male_sat             rho=-0.415 p=0.022
+
+=== SEXUAL DICHROMATISM vs mate choice ===
+n = 27 species (>=5 male AND >=5 female)
+  dichromatism_dE      rho=-0.359 p=0.066
+  male_excess_colorf   rho=+0.125 p=0.535
+  male_excess_hue      rho=-0.092 p=0.647
+
+  PGLS dichromatism (n=25, lambda=0.97): slope=-2.620 t=-1.56 p=0.133
+
+wrote sexed_metrics.csv
