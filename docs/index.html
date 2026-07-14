@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Does mate choice make fish beautiful? — the interactive gallery</title>
+<meta name="description" content="123 fish species placed at their own mate-choice score and colour variety. Zoom, pan, and hover any fish.">
+<meta property="og:title" content="Does mate choice make fish beautiful?">
+<meta property="og:description" content="Every datapoint is the fish. 123 species at their own (mate-choice, colour-variety) coordinate — zoom in and meet them.">
+<style>
+  :root{
+    --paper:#f4ecdb; --ink:#3a342b; --accent:#9b3d2e; --grid:#ddd0b7;
+    --muted:#8a8172; --line:#cfc0a3;
+    --serif:"Palatino","Palatino Linotype","Book Antiqua",Georgia,"Times New Roman",serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;overflow:hidden;background:var(--paper);color:var(--ink);
+            font-family:var(--serif);-webkit-font-smoothing:antialiased}
+  #stage{position:fixed;inset:0}
+  canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+  canvas.dragging{cursor:grabbing}
+  canvas.overfish{cursor:pointer}
+
+  /* ---------------------------------------------------------------- chrome */
+  header{position:fixed;left:26px;top:18px;right:286px;pointer-events:none;z-index:5}
+  h1{margin:0;font-size:23px;font-weight:600;letter-spacing:.1px}
+  h1 .q{color:var(--accent)}
+  .sub{margin-top:5px;font-size:15px;color:#5a5346;max-width:72ch}
+  .sub b{font-weight:600;color:var(--ink)}
+  .legendline{margin-top:3px;font-size:13.5px;color:var(--muted);font-style:italic;max-width:88ch}
+  .hint{margin-top:2px;font-size:13px;color:#a2977f;font-style:italic}
+
+  .panel{position:fixed;z-index:6;background:rgba(250,245,234,.93);border:1px solid var(--line);
+         border-radius:9px;backdrop-filter:blur(3px);box-shadow:0 3px 16px rgba(58,52,43,.09)}
+
+  /* search, top right */
+  #find{right:26px;top:18px;padding:8px 9px;width:236px}
+  #search{width:100%;padding:6px 9px;font-family:var(--serif);font-size:14px;color:var(--ink);
+          background:#fdfaf2;border:1px solid var(--line);border-radius:6px;outline:none}
+  #search:focus{border-color:#b39c78}
+  #search::placeholder{color:#a99e88;font-style:italic}
+  #count{margin-top:6px;font-size:11.5px;color:var(--muted);font-style:italic;min-height:0;
+         line-height:1.3;transition:.15s}
+  #count:empty{margin-top:0}
+
+  /* legend: a strip along the bottom, out of the fishes' way */
+  /* left:0;right:0 + auto margins, so it can size itself against the FULL window
+     (with left:50% alone a fixed box shrink-wraps into the right half and wraps early) */
+  #legend{left:0;right:0;margin:0 auto;width:fit-content;max-width:min(1180px,94vw);
+          bottom:12px;padding:5px 7px;
+          display:flex;flex-wrap:wrap;justify-content:center;gap:3px 4px}
+  .chip{display:flex;align-items:center;gap:5px;padding:3px 8px 3px 6px;border-radius:20px;
+        border:1px solid transparent;font-size:11.5px;cursor:pointer;user-select:none;
+        color:#5f584b;background:rgba(255,255,255,.35);transition:.12s}
+  .chip:hover{border-color:var(--line)}
+  .chip .sw{width:10px;height:10px;border-radius:50%;flex:none}
+  .chip.off{opacity:.34;text-decoration:line-through}
+
+  /* zoom buttons, bottom right */
+  #zoom{right:26px;bottom:16px;display:flex;flex-direction:column;overflow:hidden}
+  #zoom button{width:34px;height:32px;border:0;border-bottom:1px solid var(--line);background:transparent;
+               color:#5f584b;font-family:var(--serif);font-size:16px;cursor:pointer}
+  #zoom button:last-child{border-bottom:0;font-size:11px}
+  #zoom button:hover{background:rgba(155,61,46,.08);color:var(--accent)}
+
+  /* hover tooltip */
+  #tip{position:fixed;z-index:8;pointer-events:none;opacity:0;transition:opacity .1s;
+       padding:7px 10px;max-width:260px}
+  #tip .cn{font-size:14.5px;font-weight:600;line-height:1.25}
+  #tip .sn{font-size:12.5px;font-style:italic;color:var(--muted);margin-top:1px}
+  #tip .st{font-size:12px;color:#5f584b;margin-top:5px}
+  #tip .st b{font-weight:600}
+
+  /* pinned detail card */
+  #card{right:26px;top:96px;width:298px;padding:0;overflow:hidden;display:none}
+  #card.on{display:block}
+  #card .top{display:flex;gap:11px;padding:13px 13px 10px;align-items:center;
+             border-bottom:1px solid rgba(207,192,163,.55)}
+  #card .thumb{width:76px;height:60px;flex:none;object-fit:contain}
+  #card .cn{font-size:16px;font-weight:600;line-height:1.2}
+  #card .sn{font-size:12.5px;font-style:italic;color:var(--muted);margin-top:2px}
+  #card .fam{font-size:11.5px;color:#7d7466;margin-top:3px}
+  #card .body{padding:11px 13px 13px}
+  .modechip{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:#5f584b;
+            padding:2px 8px 2px 6px;border-radius:20px;background:rgba(255,255,255,.5);
+            border:1px solid var(--line)}
+  .modechip .sw{width:9px;height:9px;border-radius:50%}
+  .note{font-size:12.5px;color:#6b6355;font-style:italic;margin:9px 0 11px;line-height:1.4}
+  .row{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;
+       padding:4px 0;border-top:1px dotted rgba(207,192,163,.7)}
+  .row .k{color:var(--muted)}
+  .row .v{font-weight:600;font-variant-numeric:tabular-nums}
+  .comps{margin-top:10px}
+  .comps h4{margin:0 0 5px;font-size:11px;font-weight:600;letter-spacing:.5px;
+            text-transform:uppercase;color:var(--muted)}
+  .comp{display:flex;align-items:center;gap:7px;font-size:12px;padding:1.5px 0}
+  .comp .cl{width:94px;color:#6b6355;flex:none}
+  .pips{display:flex;gap:3px}
+  .pip{width:15px;height:7px;border-radius:2px;background:rgba(155,61,46,.13)}
+  .pip.on{background:var(--accent)}
+  #card .foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
+  #card a{font-size:12px;color:var(--accent);text-decoration:none;border-bottom:1px solid rgba(155,61,46,.3)}
+  #card a:hover{border-bottom-color:var(--accent)}
+  #close{border:0;background:transparent;color:var(--muted);font-size:12px;cursor:pointer;
+         font-family:var(--serif);padding:0}
+  #close:hover{color:var(--accent)}
+
+  #loading{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;gap:12px;
+           align-items:center;justify-content:center;background:var(--paper);transition:opacity .5s}
+  #loading.gone{opacity:0;pointer-events:none}
+  #loading .t{font-size:15px;color:var(--muted);font-style:italic}
+  #bar{width:200px;height:2px;background:var(--grid);overflow:hidden}
+  #bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .18s}
+
+  @media (max-width:900px){
+    header{left:14px;right:14px;top:12px}
+    h1{font-size:18px} .sub{font-size:13px} .hint{font-size:12px}
+    #find{left:14px;right:14px;top:auto;bottom:64px;width:auto;padding:6px 7px}
+    #legend{left:14px;right:14px;margin:0;width:auto;bottom:12px;max-width:none;
+            flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start}
+    .chip{flex:none}
+    #zoom{display:none}
+    #tip{display:none}
+    #card{left:14px;right:14px;top:auto;bottom:12px;width:auto;max-height:56vh;overflow:auto}
+  }
+</style>
+</head>
+<body>
+<div id="stage"><canvas id="c"></canvas></div>
+
+<header>
+  <h1>Does mate choice make fish <span class="q">beautiful</span>?</h1>
+  <div class="sub" id="subtitle"></div>
+  <div class="legendline">background colour = the mating behaviour that dominates that region of the plane;
+    the pale band is the ±1 SD spread of species about the trend</div>
+  <div class="hint">scroll to zoom · drag to pan · hover a fish to meet it · click to pin it</div>
+</header>
+
+<div class="panel" id="find">
+  <input id="search" type="search" placeholder="find a fish — name, or family…" autocomplete="off" spellcheck="false">
+  <div id="count"></div>
+</div>
+
+<div class="panel" id="legend"></div>
+
+<div class="panel" id="zoom">
+  <button id="zin" title="zoom in">+</button>
+  <button id="zout" title="zoom out">−</button>
+  <button id="zreset" title="reset view">reset</button>
+</div>
+
+<div class="panel" id="tip"></div>
+<div class="panel" id="card"></div>
+
+<div id="loading">
+  <div class="t">catching 123 fish…</div>
+  <div id="bar"><i></i></div>
+</div>
+
+<script>
+(async function(){
+const $ = s => document.querySelector(s);
+const cv = $('#c'), ctx = cv.getContext('2d');
+
+const D = await (await fetch('data.json')).json();
+const [X0, X1] = D.xlim, [Y0, Y1] = D.ylim;
+
+// ------------------------------------------------------------------ assets
+const wash = new Image(); wash.src = 'assets/wash.webp';
+let done = 0, total = D.fish.length + 1;
+const bump = () => { done++; $('#bar i').style.width = (100*done/total) + '%'; };
+
+const MASK = 64;                       // per-fish alpha mask, for exact hover hit-testing
+const mc = document.createElement('canvas'); mc.width = mc.height = MASK;
+const mx = mc.getContext('2d', {willReadFrequently:true});
+
+await Promise.all([
+  new Promise(r => { wash.onload = () => { bump(); r(); }; wash.onerror = r; }),
+  ...D.fish.map(f => new Promise(r => {
+    const im = new Image();
+    im.onload = () => {
+      f.im = im;
+      mx.clearRect(0,0,MASK,MASK);
+      mx.drawImage(im, 0, 0, MASK, MASK);          // squash into the mask; we sample in uv space
+      const d = mx.getImageData(0,0,MASK,MASK).data;
+      f.mask = new Uint8Array(MASK*MASK);
+      for (let i = 0; i < MASK*MASK; i++) f.mask[i] = d[i*4+3];
+      bump(); r();
+    };
+    im.onerror = () => { bump(); r(); };
+    im.src = 'assets/fish/' + f.img;
+  }))
+]);
+const FISH = D.fish.filter(f => f.im);
+// big fish first, so the little ones end up on top — same stacking as the figure
+const ORDER = FISH.map((_,i) => i).sort((a,b) =>
+  (FISH[b].w*FISH[b].h) - (FISH[a].w*FISH[a].h));
+
+$('#subtitle').innerHTML =
+  `each fish sits at its own mate-choice and colour-variety · <b>${D.n} species</b> · ` +
+  `the palette widens rightward (ρ = <b>${D.rho >= 0 ? '+' : ''}${D.rho.toFixed(2)}</b>, p &lt; 0.001)`;
+$('#loading .t').textContent = `catching ${D.n} fish…`;
+
+// ------------------------------------------------------------------- state
+const M = {l:76, r:30, t:126, b:96};                // plot margins (px) — clear of the header and the legend strip
+let W = 0, H = 0, P = {x:0,y:0,w:0,h:0}, dpr = 1;
+let k = 1, tx = 0, ty = 0;                          // zoom + pan, on top of the fit
+let hover = -1, pinned = -1, query = '', off = new Set();
+
+const K_MAX = 10;      // beyond this the cut-outs run out of pixels
+const clamp = (v,a,b) => v < a ? a : v > b ? b : v;
+
+function resize(){
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  W = cv.clientWidth; H = cv.clientHeight;
+  cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  P = {x:M.l, y:M.t, w:Math.max(10, W-M.l-M.r), h:Math.max(10, H-M.t-M.b)};
+  clampPan(); draw();
+}
+// data -> screen
+const SX = d => P.x + ((d - X0)/(X1 - X0))*P.w*k + tx;
+const SY = d => P.y + ((Y1 - d)/(Y1 - Y0))*P.h*k + ty;
+
+function clampPan(){
+  tx = clamp(tx, P.w - P.w*k, 0);
+  ty = clamp(ty, P.h - P.h*k, 0);
+}
+function zoomAt(px, py, factor){
+  const nk = clamp(k*factor, 1, K_MAX);
+  const f = nk/k;
+  tx = px - P.x - (px - P.x - tx)*f;               // keep the point under the cursor fixed
+  ty = py - P.y - (py - P.y - ty)*f;
+  k = nk; clampPan(); draw();
+}
+
+// fish size in px: 0.0429 of the plot width at k=1 reproduces the figure's proportions
+const fishSize = f => {
+  const s = 0.0429*P.w*k / Math.max(f.w, f.h);
+  return {w: f.w*s, h: f.h*s};
+};
+const visible = f => !off.has(f.mode);
+const matches = f => !query ||
+  (f.common + ' ' + f.scientific + ' ' + f.family + ' ' + f.mode).toLowerCase().includes(query);
+const dim = f => !visible(f) || !matches(f);
+
+// -------------------------------------------------------------------- draw
+const XTICKS = [0,2,4,6,8,10], YTICKS = [1.5,2,2.5,3,3.5,4];
+
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = D.paper; ctx.fillRect(0,0,W,H);
+
+  ctx.save();
+  ctx.beginPath(); ctx.rect(P.x, P.y, P.w, P.h); ctx.clip();
+
+  // the watercolour field, stretched over the data domain
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(wash, SX(X0), SY(Y1), P.w*k, P.h*k);
+
+  // grid
+  ctx.strokeStyle = D.grid; ctx.globalAlpha = .35; ctx.lineWidth = .8;
+  ctx.beginPath();
+  for (const t of XTICKS){ const x = SX(t); ctx.moveTo(x, P.y); ctx.lineTo(x, P.y+P.h); }
+  for (const t of YTICKS){ const y = SY(t); ctx.moveTo(P.x, y); ctx.lineTo(P.x+P.w, y); }
+  ctx.stroke(); ctx.globalAlpha = 1;
+
+  // trend: ±1 SD veil, bootstrap CI ribbon, then the line in a paper casing
+  const T = D.trend;
+  const band = (lo, hi, alpha) => {
+    ctx.beginPath();
+    T.x.forEach((xv,i) => i ? ctx.lineTo(SX(xv), SY(hi[i])) : ctx.moveTo(SX(xv), SY(hi[i])));
+    for (let i = T.x.length-1; i >= 0; i--) ctx.lineTo(SX(T.x[i]), SY(lo[i]));
+    ctx.closePath();
+    ctx.fillStyle = D.accent; ctx.globalAlpha = alpha; ctx.fill(); ctx.globalAlpha = 1;
+  };
+  band(T.sdLo, T.sdHi, .028);      // the ±1 SD spread of species about the line — a veil, not a stripe
+  band(T.lo, T.hi, .22);           // the 95% bootstrap CI of the line itself
+  const line = (w, color, alpha) => {
+    ctx.beginPath();
+    T.x.forEach((xv,i) => i ? ctx.lineTo(SX(xv), SY(T.fit[i])) : ctx.moveTo(SX(xv), SY(T.fit[i])));
+    ctx.lineWidth = w; ctx.strokeStyle = color; ctx.globalAlpha = alpha;
+    ctx.lineCap = 'round'; ctx.stroke(); ctx.globalAlpha = 1;
+  };
+  line(6.5, D.paper, .55);
+  line(3.0, D.accent, .92);
+
+  // mode labels, sitting where each behaviour owns the paper
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.font = 'italic 17px ' + getComputedStyle(document.body).fontFamily;
+  for (const L of D.labels){
+    if (off.has(L.mode)) continue;
+    const x = SX(L.x), y = SY(L.y);
+    ctx.lineWidth = 4.5; ctx.strokeStyle = D.paper; ctx.globalAlpha = .85;
+    ctx.strokeText(L.mode, x, y); ctx.globalAlpha = 1;
+    ctx.fillStyle = shade(D.palette[L.mode], .55);
+    ctx.fillText(L.mode, x, y);
+  }
+
+  // the fish
+  for (const i of ORDER) if (i !== hover) paintFish(FISH[i], false);
+  if (hover >= 0) paintFish(FISH[hover], true);      // the hovered one comes to the surface
+
+  ctx.restore();
+  axes();
+}
+
+function paintFish(f, hot){
+  const {w, h} = fishSize(f);
+  const s = hot ? 1.09 : 1;
+  const x = SX(f.x) - w*s/2, y = SY(f.y) - h*s/2;
+  if (x > P.x + P.w || x + w*s < P.x || y > P.y + P.h || y + h*s < P.y) return;   // offscreen
+  const faded = dim(f);
+  ctx.globalAlpha = faded ? .14 : 1;
+
+  if (!faded){
+    ctx.save();
+    ctx.shadowColor = hot ? 'rgba(155,61,46,.55)' : 'rgba(58,52,43,.30)';
+    ctx.shadowBlur = hot ? 16 : 6 + 2*k;
+    ctx.shadowOffsetX = hot ? 0 : 3; ctx.shadowOffsetY = hot ? 0 : 3;
+    ctx.drawImage(f.im, x, y, w*s, h*s);
+    ctx.restore();
+  }
+  ctx.drawImage(f.im, x, y, w*s, h*s);
+  ctx.globalAlpha = 1;
+}
+
+function axes(){
+  ctx.fillStyle = D.paper;
+  ctx.fillRect(0, 0, W, P.y); ctx.fillRect(0, P.y+P.h, W, H-P.y-P.h);
+  ctx.fillRect(0, 0, P.x, H); ctx.fillRect(P.x+P.w, 0, W-P.x-P.w, H);
+
+  ctx.strokeStyle = '#b7a988'; ctx.lineWidth = 1.1;
+  ctx.beginPath();
+  ctx.moveTo(P.x, P.y); ctx.lineTo(P.x, P.y+P.h); ctx.lineTo(P.x+P.w, P.y+P.h);
+  ctx.stroke();
+
+  const body = getComputedStyle(document.body).fontFamily;
+  ctx.fillStyle = D.ink; ctx.font = '13px ' + body;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  for (const t of XTICKS){
+    const x = SX(t);
+    if (x < P.x - 1 || x > P.x + P.w + 1) continue;
+    ctx.beginPath(); ctx.moveTo(x, P.y+P.h); ctx.lineTo(x, P.y+P.h+5); ctx.stroke();
+    ctx.fillText(t, x, P.y+P.h+9);
+  }
+  ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  for (const t of YTICKS){
+    const y = SY(t);
+    if (y < P.y - 1 || y > P.y + P.h + 1) continue;
+    ctx.beginPath(); ctx.moveTo(P.x-5, y); ctx.lineTo(P.x, y); ctx.stroke();
+    ctx.fillText(t.toFixed(1), P.x-9, y);
+  }
+
+  ctx.fillStyle = '#5a5346'; ctx.font = '14.5px ' + body;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  ctx.fillText('mate-choice index      random / broadcast spawning  →  strict female choice',
+               P.x + P.w/2, P.y + P.h + 30);
+  ctx.save();
+  ctx.translate(20, P.y + P.h/2); ctx.rotate(-Math.PI/2);
+  ctx.textBaseline = 'top'; ctx.fillText('colour variety — distinct hues worn by the fish', 0, 0);
+  ctx.restore();
+}
+
+function shade(hex, f){
+  const n = parseInt(hex.slice(1), 16);
+  const r = ((n>>16)&255)*f, g = ((n>>8)&255)*f, b = (n&255)*f;
+  return `rgb(${r|0},${g|0},${b|0})`;
+}
+
+// ------------------------------------------------------------------ picking
+function hit(px, py){
+  for (let j = ORDER.length - 1; j >= 0; j--) {     // topmost first
+    const f = FISH[ORDER[j]];
+    if (dim(f)) continue;
+    const {w, h} = fishSize(f);
+    const u = (px - (SX(f.x) - w/2))/w, v = (py - (SY(f.y) - h/2))/h;
+    if (u < 0 || u >= 1 || v < 0 || v >= 1) continue;
+    const a = f.mask[(Math.min(MASK-1, v*MASK|0))*MASK + Math.min(MASK-1, u*MASK|0)];
+    if (a > 24) return ORDER[j];                    // a real pixel of the fish, not its bounding box
+  }
+  return -1;
+}
+
+// -------------------------------------------------------------------- cards
+const fmt = v => v.toFixed(2);
+const COMPS = [['fert','fertilisation'],['court','courtship'],['system','mating system'],['choice','female choice']];
+
+function showTip(f, px, py){
+  const t = $('#tip');
+  t.innerHTML =
+    `<div class="cn">${f.common}</div><div class="sn">${f.scientific}</div>` +
+    `<div class="st"><b>mate-choice ${fmt(f.mci)}</b> · colour variety <b>${fmt(f.hue_entropy)}</b></div>`;
+  t.style.opacity = 1;
+  const r = t.getBoundingClientRect();
+  t.style.left = clamp(px + 16, 8, window.innerWidth - r.width - 8) + 'px';
+  t.style.top  = clamp(py + 16, 8, window.innerHeight - r.height - 8) + 'px';
+}
+const hideTip = () => $('#tip').style.opacity = 0;
+
+function showCard(f){
+  const pips = (n) => `<div class="pips">${[0,1,2].map(i =>
+      `<div class="pip${i < n ? ' on' : ''}"></div>`).join('')}</div>`;
+  $('#card').innerHTML = `
+    <div class="top">
+      <img class="thumb" src="assets/fish/${f.img}" alt="${f.common}">
+      <div>
+        <div class="cn">${f.common}</div>
+        <div class="sn">${f.scientific}</div>
+        <div class="fam">${f.family} · ${f.habitat}</div>
+      </div>
+    </div>
+    <div class="body">
+      <span class="modechip"><span class="sw" style="background:${D.palette[f.mode]}"></span>${f.mode}</span>
+      <div class="note">“${f.note}”</div>
+      <div class="row"><span class="k">mate-choice index</span><span class="v">${fmt(f.mci)} <span style="color:var(--muted);font-weight:400">/ 10</span></span></div>
+      <div class="row"><span class="k">colour variety (hue entropy)</span><span class="v">${fmt(f.hue_entropy)}</span></div>
+      <div class="row"><span class="k">colorfulness</span><span class="v">${fmt(f.colorfulness)}</span></div>
+      <div class="row"><span class="k">saturation</span><span class="v">${fmt(f.saturation)}</span></div>
+      <div class="row"><span class="k">photos measured</span><span class="v">${f.n_images}</span></div>
+      <div class="comps">
+        <h4>the four behavioural sub-scores</h4>
+        ${COMPS.map(([_,label], i) =>
+          `<div class="comp"><span class="cl">${label}</span>${pips(f.c[i])}</div>`).join('')}
+      </div>
+      <div class="foot">
+        <a href="https://www.inaturalist.org/search?q=${encodeURIComponent(f.scientific)}"
+           target="_blank" rel="noopener">see it on iNaturalist ↗</a>
+        <button id="close">close</button>
+      </div>
+    </div>`;
+  $('#card').classList.add('on');
+  $('#close').onclick = () => unpin();
+}
+const slug = f => f.scientific.replace(/ /g, '_');
+function pin(i){
+  pinned = i; showCard(FISH[i]);
+  history.replaceState(null, '', '#' + slug(FISH[i]));   // so a fish can be linked to
+  draw();
+}
+function unpin(){
+  pinned = -1; $('#card').classList.remove('on');
+  history.replaceState(null, '', location.pathname + location.search);
+  draw();
+}
+// arriving at .../#Synchiropus_splendidus lands on that fish, zoomed in and pinned
+function openFromHash(){
+  const want = decodeURIComponent(location.hash.slice(1)).toLowerCase();
+  if (!want) return;
+  const i = FISH.findIndex(f => slug(f).toLowerCase() === want);
+  if (i < 0) return;
+  const f = FISH[i];
+  k = 4;
+  tx = P.w/2 - ((f.x - X0)/(X1 - X0))*P.w*k;
+  ty = P.h/2 - ((Y1 - f.y)/(Y1 - Y0))*P.h*k;
+  clampPan();
+  pin(i);
+}
+
+// --------------------------------------------------------------- interaction
+let drag = null;
+cv.addEventListener('pointerdown', e => {
+  drag = {x:e.clientX, y:e.clientY, tx, ty, moved:0};
+  cv.setPointerCapture(e.pointerId); cv.classList.add('dragging');
+});
+cv.addEventListener('pointermove', e => {
+  if (drag){
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    drag.moved = Math.max(drag.moved, Math.abs(dx) + Math.abs(dy));
+    tx = drag.tx + dx; ty = drag.ty + dy;
+    clampPan(); hideTip(); draw();
+    return;
+  }
+  const r = cv.getBoundingClientRect();
+  const h = hit(e.clientX - r.left, e.clientY - r.top);
+  cv.classList.toggle('overfish', h >= 0);
+  if (h !== hover){ hover = h; draw(); }
+  if (h >= 0) showTip(FISH[h], e.clientX, e.clientY); else hideTip();
+});
+const endDrag = e => {
+  if (drag && drag.moved < 4){                       // a click, not a drag
+    const r = cv.getBoundingClientRect();
+    const h = hit(e.clientX - r.left, e.clientY - r.top);
+    if (h >= 0) pin(h); else unpin();
+  }
+  drag = null; cv.classList.remove('dragging');
+};
+cv.addEventListener('pointerup', endDrag);
+cv.addEventListener('pointercancel', () => { drag = null; cv.classList.remove('dragging'); });
+cv.addEventListener('pointerleave', () => { if (hover >= 0){ hover = -1; draw(); } hideTip(); });
+
+cv.addEventListener('wheel', e => {
+  e.preventDefault();
+  const r = cv.getBoundingClientRect();
+  zoomAt(e.clientX - r.left, e.clientY - r.top, Math.exp(-e.deltaY*0.0022));
+  hideTip();
+}, {passive:false});
+
+cv.addEventListener('dblclick', e => {
+  const r = cv.getBoundingClientRect();
+  zoomAt(e.clientX - r.left, e.clientY - r.top, 1.8);
+});
+
+// pinch
+let pinch = null;
+cv.addEventListener('touchstart', e => {
+  if (e.touches.length === 2){
+    drag = null;
+    const [a,b] = e.touches;
+    pinch = Math.hypot(a.clientX-b.clientX, a.clientY-b.clientY);
+  }
+}, {passive:true});
+cv.addEventListener('touchmove', e => {
+  if (e.touches.length === 2 && pinch){
+    e.preventDefault();
+    const [a,b] = e.touches;
+    const d = Math.hypot(a.clientX-b.clientX, a.clientY-b.clientY);
+    const r = cv.getBoundingClientRect();
+    zoomAt((a.clientX+b.clientX)/2 - r.left, (a.clientY+b.clientY)/2 - r.top, d/pinch);
+    pinch = d;
+  }
+}, {passive:false});
+cv.addEventListener('touchend', () => { pinch = null; }, {passive:true});
+
+$('#zin').onclick  = () => zoomAt(P.x+P.w/2, P.y+P.h/2, 1.5);
+$('#zout').onclick = () => zoomAt(P.x+P.w/2, P.y+P.h/2, 1/1.5);
+$('#zreset').onclick = () => { k = 1; tx = ty = 0; draw(); };
+
+addEventListener('keydown', e => {
+  if (e.key === 'Escape'){ unpin(); $('#search').blur(); }
+  if (document.activeElement === $('#search')) return;
+  if (e.key === '+' || e.key === '=') zoomAt(P.x+P.w/2, P.y+P.h/2, 1.4);
+  if (e.key === '-' || e.key === '_') zoomAt(P.x+P.w/2, P.y+P.h/2, 1/1.4);
+  if (e.key === '0'){ k = 1; tx = ty = 0; draw(); }
+});
+
+// legend: click a behaviour to mute it
+const legend = $('#legend');
+for (const mode of D.modeOrder){
+  const el = document.createElement('div');
+  el.className = 'chip';
+  el.innerHTML = `<span class="sw" style="background:${D.palette[mode]}"></span>${mode}`;
+  el.onclick = () => {
+    off.has(mode) ? off.delete(mode) : off.add(mode);
+    el.classList.toggle('off', off.has(mode));
+    if (pinned >= 0 && dim(FISH[pinned])) unpin();
+    hover = -1; tally(); draw();
+  };
+  legend.appendChild(el);
+}
+
+$('#search').addEventListener('input', e => {
+  query = e.target.value.trim().toLowerCase();
+  hover = -1; tally(); draw();
+});
+function tally(){
+  const n = FISH.filter(f => !dim(f)).length;
+  $('#count').textContent = (query || off.size)
+    ? `${n} of ${FISH.length} fish showing` : '';
+}
+
+addEventListener('resize', resize);
+resize();
+openFromHash();
+addEventListener('hashchange', openFromHash);
+$('#loading').classList.add('gone');
+setTimeout(() => $('#loading').remove(), 600);
+})();
+</script>
+</body>
+</html>

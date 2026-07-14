@@ -7,6 +7,14 @@ background-removed photographs of 156 species.
 
 ![the gallery](experiment/fig4_fish_gallery.png)
 
+### ▶ [Swim around in the gallery](https://yitongtseo.github.io/FishArt/)
+
+The figure above, but alive: **scroll to zoom, drag to pan, hover any fish** to get its name,
+family, mating behaviour and every score behind its position — click to pin the card, search
+for a species, or mute a mating behaviour to see what the rest of the plane looks like without
+it. Linkable per fish, too: [#Synchiropus_splendidus](https://yitongtseo.github.io/FishArt/#Synchiropus_splendidus)
+drops you on the mandarinfish.
+
 ## Headline result
 
 **Yes — but only for colour *variety*, not raw brightness.** Mate-choosy species wear a
@@ -170,7 +178,14 @@ python phylo.py            # PGLS with Pagel's lambda
 python clean_figures.py    # fig1, fig2, fig3 + fish_quality.csv
 python make_cutouts.py     # one vetted cut-out per species   -> data/cutouts/ (needs torch)
 python fig4_fish_gallery.py
+python build_web.py        # the same gallery, interactive    -> ../docs/  (served by GitHub Pages)
 ```
+
+`build_web.py` needs nothing beyond the committed cut-outs and `fish_metrics.csv`, and it
+recomputes the wash, the jitter, the trend and the label placement with the same seed and the
+same call order as `fig4_fish_gallery.py` — so the web page *is* the figure, only walkable.
+It writes `docs/`: the page, the background wash, 123 WebP cut-outs and one `data.json`
+(1.9 MB all in). To serve it locally: `python -m http.server` from `docs/`.
 
 The cut-outs in `data/cutouts/` **are committed**, so `fig4_fish_gallery.py` can be re-run
 without the 1.1 GB image download. Everything else under `data/` is gitignored and
@@ -189,6 +204,7 @@ regenerable.
 | `clean_figures.py` | the three analytical figures |
 | `make_cutouts.py`, `fishnet.py` | vetted cut-outs for the gallery |
 | `artsy_fig1.py`, `fig4_fish_gallery.py` | the two figures for the essay |
+| `build_web.py` → `docs/` | the interactive gallery (zoom / pan / hover), published by GitHub Pages |
 | `FINDINGS.md` | full results, iteration by iteration, including the negative ones |
 | `BRAINSTORM_Yaxes.md` | every striking-ness measure considered, and why |
 | `archive/` | superseded iteration-1/2 scripts and figures |
