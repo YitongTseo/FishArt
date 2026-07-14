@@ -1,6 +1,73 @@
 # Fish-art hypothesis test — findings
 
-## Iteration 6 (current): the gallery's cut-outs were a third wrong
+## Iteration 7 (current): the good segmenter applied to the *numbers*, and the ≥15 rule put on trial
+
+Iteration 6 fixed the cut-outs and asserted "no change to the statistics", on the reasoning
+that a median over ~25 images is robust to the odd bad mask. That assertion was never tested.
+It turns out to have been **wrong in the reassuring direction**: the figure was drawn with the
+good segmenter (isnet @768 + shape gates + classifier veto) but *scored* with the bad one
+(`features.py` → u2netp @400, no gate, no veto). Bad masks were still in the medians.
+
+`features_isnet.py` re-measures all 13 metrics through the same bar the gallery cut-outs must
+clear, and measures on the largest connected component only. Of the **4,905** photos it
+re-segmented, **the shape gates killed 478 (10%) and the classifier vetoed 362 (7%)** — about
+one photo in six feeding the old medians was not a clean fish. (The veto uses the *comparative* ratio
+p_fish/(p_fish+p_reef), not the raw p_fish that `make_cutouts` ranks by: most reef fish are not
+ImageNet classes at all, so a raw-probability threshold would discard good fish.)
+
+**The result gets stronger, not weaker** — which is the direction you want, because it means
+the old masks were adding noise, not manufacturing the signal:
+
+| | colour variety ρ (≥15 photos) | PGLS p (≥15) | ρ (floodgates, every species) | PGLS p (floodgates) |
+|---|---|---|---|---|
+| OLD masks (u2netp) | +0.31, p=0.0005 | 0.011 | +0.19, p=0.021 | 0.064 |
+| **NEW masks (isnet+gates+veto)** | **+0.38, p<0.0001** | **0.001** | **+0.20, p=0.016** | **0.050** |
+
+Rank agreement between old and new colour-variety scores is ρ=+0.87 — the re-measurement moves
+species, it does not reshuffle them. The biggest movers are exactly the species you would
+predict: the **chocolate gourami** (1.48 → 2.55) and **peaceful betta** (2.37 → 3.30) were
+being measured partly on tank furniture; the **redtooth triggerfish** (2.26 → 1.40) and
+**frontosa cichlid** (2.66 → 1.85) were being credited with the colour variety of open reef.
+`n_color_clusters` crosses into significance (+0.13 n.s. → +0.23, p=0.012). No measure that
+was null becomes null in the other direction, and no sign flips.
+
+### The ≥15-photo rule, interrogated — `threshold_sweep.py`
+
+The rule deserved the suspicion: "the effect got stronger when I dropped data" is also what
+p-hacking looks like. So here is the effect at *every* bar, rather than a defence of one:
+
+| min photos | 1 (all) | 3 | 5 | 10 | 15 | 20 | 25 |
+|---|---|---|---|---|---|---|---|
+| ρ (new masks) | +0.20 | +0.25 | +0.27 | +0.31 | +0.38 | +0.40 | +0.41 |
+| p | 0.016 | 0.004 | 0.002 | 0.0004 | <0.0001 | <0.0001 | <0.0001 |
+
+The curve is **monotone attenuation toward zero as the bar drops, with no sign flip and no
+threshold at which the effect appears from nowhere**. That is the signature of measurement
+noise diluting a real effect — a species' score is a median over n photos, and at n=1 that
+"median" is one photo, where a fish photographed in a bucket counts the same as a portrait.
+It is *not* the signature of a result conjured by a filter. The honest summary: **the effect
+is real at every threshold, and the threshold buys precision, not existence.**
+
+The principled alternative to a cliff is to keep every species and weight it by √photos:
+**ρ = +0.29, p = 0.0008** across all 141 species. That is the number to quote if you distrust
+the cliff, and it sits exactly where the sweep says it should.
+
+**The gallery now opens the floodgates** (`MINIMG=1`): all **133 species with a cut-out**, up
+from 123, including 18 the old rule excluded — several resting on a single photo (kribensis,
+fairy cichlid, electric blue ahli). The figure's caption therefore honestly reports the
+weaker all-species number, **ρ = +0.23, p = 0.009**, and the interactive gallery flags any
+fish measured on <15 photos as a noisy estimate on its card. Caveat worth keeping in view:
+under the floodgates the **PGLS lands exactly on p = 0.050** — with phylogeny controlled *and*
+every noisy species admitted, the effect is at the edge of significance, not comfortably
+inside it.
+
+Two bugs fixed in passing: `fig4_fish_gallery.py` and the web page both **hard-coded
+"p < 0.001"** into the caption, which was false the moment the sample changed. They now print
+the computed p.
+
+---
+
+## Iteration 6: the gallery's cut-outs were a third wrong
 No change to the statistics — this iteration fixed **presentation integrity**.
 
 An audit of the 143 cut-outs behind `fig4_fish_gallery.png` found that **~30% were not

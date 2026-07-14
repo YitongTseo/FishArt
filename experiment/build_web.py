@@ -46,10 +46,11 @@ def hex2rgb(h):
     h = h.lstrip("#"); return np.array([int(h[i:i+2],16)/255 for i in (0,2,4)])
 
 # ---------------------------------------------------------------- the species
-df = pd.read_csv(os.path.join(ROOT, "fish_metrics.csv"))
+df = pd.read_csv(os.path.join(ROOT, os.environ.get("METRICS", "fish_metrics.csv")))
 modes = {s["scientific"]: s["mating_mode"] for s in SPECIES}
 df["mating_mode"] = df["scientific"].map(modes)
-q = df[df.n_images >= 15].copy().reset_index(drop=True)
+MINIMG = int(os.environ.get("MINIMG", 15))    # MINIMG=1 opens the floodgates: every species that has a cut-out
+q = df[df.n_images >= MINIMG].copy().reset_index(drop=True)
 q["png"] = q["scientific"].apply(lambda s: os.path.join(CUT, s.replace(" ", "_") + ".png"))
 q = q[q["png"].apply(os.path.exists)].reset_index(drop=True)
 

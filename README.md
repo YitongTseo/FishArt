@@ -18,10 +18,24 @@ drops you on the mandarinfish.
 ## Headline result
 
 **Yes — but only for colour *variety*, not raw brightness.** Mate-choosy species wear a
-greater diversity of hues (Spearman ρ = **+0.31, p < 0.001**), and the effect **survives
-phylogenetic correction** (PGLS p = 0.011) — so it is not merely an artifact of a few
-colourful lineages. Raw colorfulness and saturation do **not** track mate choice, and the
-apparent body-shape effects vanish once phylogeny is controlled.
+greater diversity of hues, and the effect **survives phylogenetic correction** — so it is not
+merely an artifact of a few colourful lineages. Raw colorfulness and saturation do **not**
+track mate choice, and the apparent body-shape effects vanish once phylogeny is controlled.
+
+How strong the effect is depends on how much noisy data you let in, so here is the whole
+range rather than the flattering end of it (metrics measured on the good segmenter, below):
+
+| species included | Spearman ρ | p | PGLS p |
+|---|---|---|---|
+| all 141 species, floodgates open | **+0.20** | 0.016 | 0.050 |
+| all species, weighted by √photos | **+0.29** | 0.0008 | — |
+| the 118 with ≥ 15 clean photos | **+0.38** | <0.0001 | 0.001 |
+
+The gallery above plots **everything** — all 133 species that have a cut-out, including ones
+resting on a single photo — so it quotes the honest all-species number, ρ = +0.23, p = 0.009.
+The effect is real at *every* photo-count threshold and never flips sign; the threshold buys
+precision, not existence (`threshold_sweep.py`). At the strictest reading — phylogeny
+controlled *and* every noisy species admitted — it sits right on the edge, PGLS p = 0.050.
 
 `FINDINGS.md` tells the full and honest story, **including where the result weakens** — it
 does not hold in the small, reef-skewed sex-annotated subset. Read that before citing this.
@@ -68,8 +82,17 @@ species qualify, which is why the sex-controlled analysis is underpowered.
 
 ### 3. The Y axis — striking-ness metrics
 
-Every photo is background-removed, and 13 metrics are measured **on the fish pixels only**
-(`features.py`), then aggregated per species by **median** (robust to a few bad frames).
+Every photo is background-removed, and 13 metrics are measured **on the fish pixels only**,
+then aggregated per species by **median** (robust to a few bad frames).
+
+> **Which masks?** Originally `features.py` (u2netp @400px, no shape gate, no veto) — so the
+> gallery was *drawn* with the good segmenter but *scored* with the weak one. The headline
+> numbers now come from **`features_isnet.py`** (`fish_metrics_isnet.csv`), which puts every
+> measured photo through the same bar the cut-outs must clear. It threw out one photo in six
+> as not-a-clean-fish, and the effect got **stronger** (ρ +0.31 → +0.38), which is how you
+> know the old masks were adding noise rather than manufacturing the signal.
+> `compare_segmenters.py` reproduces the side-by-side.
+
 The headline measure is:
 
 > **`hue_entropy` — "colour variety"**: the Shannon entropy of the fish's hue histogram
@@ -91,13 +114,25 @@ squares) with an ML-estimated Pagel's λ, so shared ancestry is modelled in the 
 rather than ignored. This is what separates the real colour-variety effect from the
 body-shape artifacts.
 
-### Data-quality rule
+### Data-quality rule — tested, then relaxed
 
-Figures use only the **species with ≥ 15 clean close-up images**, so that the per-species
-median rests on real data. Species with 1–14 usable images are dropped. This is not
-p-hacking in disguise: filtering them *strengthened* the signal (ρ = +0.19 → +0.31), which
-is the direction you expect if the discarded species were measurement noise rather than
-counter-evidence.
+The figures used to require **≥ 15 clean close-up images** per species, defended on the
+grounds that filtering *strengthened* the signal. But "the result improved when I dropped
+data" is also exactly what p-hacking looks like, so the rule was put on trial rather than
+defended: `threshold_sweep.py` reports the effect at **every** bar, including none at all.
+
+| min photos | 1 (all) | 3 | 5 | 10 | 15 | 20 | 25 |
+|---|---|---|---|---|---|---|---|
+| ρ | +0.20 | +0.25 | +0.27 | +0.31 | +0.38 | +0.40 | +0.41 |
+| p | 0.016 | 0.004 | 0.002 | 0.0004 | <0.0001 | <0.0001 | <0.0001 |
+
+Monotone attenuation toward zero as the bar drops, no sign flip, no threshold at which the
+effect appears from nowhere. That is measurement noise diluting a real effect — a species'
+score is a median over n photos, and at n = 1 that "median" is a single photo, where a fish
+in a bucket counts as much as a portrait. So **the gallery now lets everything in** and
+quotes the weaker, honest all-species number; the interactive version flags any fish
+measured on < 15 photos as a noisy estimate. If you distrust cliffs entirely, keep every
+species and weight by √photos: ρ = +0.29, p = 0.0008.
 
 ---
 
@@ -177,9 +212,20 @@ python features.py         # 13 metrics/image, median/species -> fish_metrics.cs
 python phylo.py            # PGLS with Pagel's lambda
 python clean_figures.py    # fig1, fig2, fig3 + fish_quality.csv
 python make_cutouts.py     # one vetted cut-out per species   -> data/cutouts/ (needs torch)
-python fig4_fish_gallery.py
-python build_web.py        # the same gallery, interactive    -> ../docs/  (served by GitHub Pages)
+
+# re-measure the metrics through the cut-out pipeline's quality bar (~40 min, 12 cores)
+python features_isnet.py   # gated + vetoed metrics           -> fish_metrics_isnet.csv
+python compare_segmenters.py   # old vs new masks, every metric
+python threshold_sweep.py      # the >=15 rule, at every threshold
+
+# the figures, on the good masks, with every species let in
+METRICS=fish_metrics_isnet.csv MINIMG=1 python fig4_fish_gallery.py
+METRICS=fish_metrics_isnet.csv MINIMG=1 python build_web.py   # -> ../docs/ (GitHub Pages)
 ```
+
+`METRICS` selects the metrics table (default `fish_metrics.csv`) and `MINIMG` the photo-count
+bar (default 15; `MINIMG=1` opens the floodgates). `phylo.py` honours both, so every number in
+the tables above is reproducible by setting those two variables.
 
 `build_web.py` needs nothing beyond the committed cut-outs and `fish_metrics.csv`, and it
 recomputes the wash, the jitter, the trend and the label placement with the same seed and the
@@ -198,7 +244,10 @@ regenerable.
 | `fish_data.py` | the 156 species and their componentised mate-choice scores |
 | `inat.py`, `build_dataset.py` | fetch and cache iNaturalist photos |
 | `segment.py` | U²-Net masks + close-up selection (used by the metrics) |
-| `features.py` | 13 striking-ness metrics per image → `fish_metrics.csv` |
+| `features.py` | 13 striking-ness metrics per image → `fish_metrics.csv` (u2netp masks) |
+| `features_isnet.py` | the same 13 metrics, re-measured through the cut-out quality bar → `fish_metrics_isnet.csv` |
+| `compare_segmenters.py` | old vs new masks, every metric — does the segmenter change the answer? |
+| `threshold_sweep.py` | the ≥15-photo rule at every threshold, plus a √photos-weighted alternative |
 | `phylo.py` | PGLS / Pagel's λ against the Fish Tree of Life |
 | `sex_probe.py`, `fetch_sexed.py`, `sexed_analyze.py` | the sex-annotated subset and dichromatism |
 | `clean_figures.py` | the three analytical figures |

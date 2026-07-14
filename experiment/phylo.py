@@ -75,7 +75,9 @@ def pgls(x, y, C):
                 t=float(t), p=float(p))
 
 def main():
-    df = pd.read_csv(os.path.join(ROOT,"fish_metrics.csv"))
+    df = pd.read_csv(os.path.join(ROOT, os.environ.get("METRICS", "fish_metrics.csv")))
+    minimg = int(os.environ.get("MINIMG", 1))       # MINIMG=15 -> the quality-filtered subset
+    df = df[df.n_images >= minimg].reset_index(drop=True)
     keep, C = load_tree_and_vcv(df["scientific"].tolist())
     d = df[df["scientific"].isin(keep)].set_index("scientific").loc[keep].reset_index()
     x = d["mate_choice_index"].values.astype(float)

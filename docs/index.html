@@ -86,6 +86,8 @@
             border:1px solid var(--line)}
   .modechip .sw{width:9px;height:9px;border-radius:50%}
   .note{font-size:12.5px;color:#6b6355;font-style:italic;margin:9px 0 11px;line-height:1.4}
+  .thin{font-size:11.5px;color:var(--accent);font-style:italic;line-height:1.35;
+        padding:6px 0 0;opacity:.85}
   .row{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;
        padding:4px 0;border-top:1px dotted rgba(207,192,163,.7)}
   .row .k{color:var(--muted)}
@@ -196,9 +198,10 @@ const FISH = D.fish.filter(f => f.im);
 const ORDER = FISH.map((_,i) => i).sort((a,b) =>
   (FISH[b].w*FISH[b].h) - (FISH[a].w*FISH[a].h));
 
+const pstr = D.p < 0.001 ? 'p &lt; 0.001' : `p = ${D.p.toFixed(3)}`;   // never hard-code the p-value
 $('#subtitle').innerHTML =
   `each fish sits at its own mate-choice and colour-variety · <b>${D.n} species</b> · ` +
-  `the palette widens rightward (ρ = <b>${D.rho >= 0 ? '+' : ''}${D.rho.toFixed(2)}</b>, p &lt; 0.001)`;
+  `the palette widens rightward (ρ = <b>${D.rho >= 0 ? '+' : ''}${D.rho.toFixed(2)}</b>, ${pstr})`;
 $('#loading .t').textContent = `catching ${D.n} fish…`;
 
 // ------------------------------------------------------------------- state
@@ -418,6 +421,7 @@ function showCard(f){
       <div class="row"><span class="k">colorfulness</span><span class="v">${fmt(f.colorfulness)}</span></div>
       <div class="row"><span class="k">saturation</span><span class="v">${fmt(f.saturation)}</span></div>
       <div class="row"><span class="k">photos measured</span><span class="v">${f.n_images}</span></div>
+      ${f.n_images < 15 ? `<div class="thin">measured on only ${f.n_images} clean photo${f.n_images === 1 ? '' : 's'} — this fish's height on the chart is a noisy estimate</div>` : ''}
       <div class="comps">
         <h4>the four behavioural sub-scores</h4>
         ${COMPS.map(([_,label], i) =>

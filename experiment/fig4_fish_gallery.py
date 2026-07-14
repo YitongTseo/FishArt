@@ -42,10 +42,11 @@ plt.rcParams.update({
     "text.color":INK,"axes.labelcolor":INK,"xtick.color":INK,"ytick.color":INK,
     "figure.facecolor":PAPER,"axes.facecolor":PAPER,"axes.edgecolor":"#b7a988","axes.linewidth":1.1})
 
-df = pd.read_csv(os.path.join(ROOT,"fish_metrics.csv"))
+df = pd.read_csv(os.path.join(ROOT, os.environ.get("METRICS", "fish_metrics.csv")))
 modes = {s["scientific"]:s["mating_mode"] for s in SPECIES}
 df["mating_mode"] = df["scientific"].map(modes)
-q = df[df.n_images >= 15].copy().reset_index(drop=True)
+MINIMG = int(os.environ.get("MINIMG", 15))    # MINIMG=1 opens the floodgates: every species that has a cut-out
+q = df[df.n_images >= MINIMG].copy().reset_index(drop=True)
 q["png"] = q["scientific"].apply(lambda s: os.path.join(CUT, s.replace(" ","_")+".png"))
 q = q[q["png"].apply(os.path.exists)].reset_index(drop=True)
 x = q["mate_choice_index"].values.astype(float)
@@ -205,8 +206,9 @@ ax.set_xlabel("mate-choice index      random / broadcast spawning   to   strict 
 ax.set_ylabel("colour variety   —   distinct hues worn by the fish", fontsize=21, labelpad=14)
 
 rho, p = stats.spearmanr(x, y)
+pstr = "p < 0.001" if p < 0.001 else f"p = {p:.3f}"     # never hard-code the p-value
 fig.text(0.055, 0.947, f"each fish sits at its own mate-choice and colour-variety   ·   {len(q)} species   ·   "
-         f"the palette widens rightward  (ρ = {rho:+.2f}, p < 0.001)", fontsize=19, color="#5a5346")
+         f"the palette widens rightward  (ρ = {rho:+.2f}, {pstr})", fontsize=19, color="#5a5346")
 fig.text(0.055, 0.917, "background colour = the mating behaviour that dominates that region of the plane;   "
          "the band is the ±1 SD spread of species about the trend",
          fontsize=15, color="#8a8172", style="italic")
