@@ -15,6 +15,11 @@ for a species, or mute a mating behaviour to see what the rest of the plane look
 it. Linkable per fish, too: [#Synchiropus_splendidus](https://yitongtseo.github.io/FishArt/#Synchiropus_splendidus)
 drops you on the mandarinfish.
 
+It also carries the **data-quality slider**: drag the bar from "let everything in" to "only the
+best-photographed" and the species below it grey out while the trend line, its bootstrap band
+and ρ are refitted, in the browser, on whoever survives. Watching ρ climb from +0.23 to +0.41
+as the noisy fish fade is the most honest way to see what a quality threshold actually buys.
+
 ## Headline result
 
 **Yes — but only for colour *variety*, not raw brightness.** Mate-choosy species wear a
@@ -121,18 +126,22 @@ grounds that filtering *strengthened* the signal. But "the result improved when 
 data" is also exactly what p-hacking looks like, so the rule was put on trial rather than
 defended: `threshold_sweep.py` reports the effect at **every** bar, including none at all.
 
-| min photos | 1 (all) | 3 | 5 | 10 | 15 | 20 | 25 |
-|---|---|---|---|---|---|---|---|
-| ρ | +0.20 | +0.25 | +0.27 | +0.31 | +0.38 | +0.40 | +0.41 |
-| p | 0.016 | 0.004 | 0.002 | 0.0004 | <0.0001 | <0.0001 | <0.0001 |
+![the rule on trial](experiment/fig5_threshold.png)
 
-Monotone attenuation toward zero as the bar drops, no sign flip, no threshold at which the
-effect appears from nowhere. That is measurement noise diluting a real effect — a species'
-score is a median over n photos, and at n = 1 that "median" is a single photo, where a fish
-in a bucket counts as much as a portrait. So **the gallery now lets everything in** and
-quotes the weaker, honest all-species number; the interactive version flags any fish
-measured on < 15 photos as a noisy estimate. If you distrust cliffs entirely, keep every
-species and weight by √photos: ρ = +0.29, p = 0.0008.
+Monotone attenuation toward zero as the bar drops, **significant at every bar from 1 to 25**,
+no sign flip, no threshold at which the effect appears from nowhere. That is measurement noise
+diluting a real effect — a species' score is a median over n photos, and at n = 1 that
+"median" is a single photo, where a fish in a bucket counts as much as a portrait. It is *not*
+what a filtering artifact looks like. Note also that the new masks sit above the old ones at
+**every** bar: better segmentation and a higher bar are two independent improvements, not the
+same one twice.
+
+So **the gallery now lets everything in** and quotes the weaker, honest all-species number.
+The interactive version flags any fish measured on < 15 photos as a noisy estimate — and it
+has a **slider**: drag the data-quality bar from 1 to 25 and watch the excluded fish grey out
+while the trend line, its confidence band and ρ are refitted live on the survivors. That is
+the whole argument in one gesture. If you distrust cliffs entirely, keep every species and
+weight by √photos: ρ = +0.29, p = 0.0008.
 
 ---
 
@@ -217,6 +226,7 @@ python make_cutouts.py     # one vetted cut-out per species   -> data/cutouts/ (
 python features_isnet.py   # gated + vetoed metrics           -> fish_metrics_isnet.csv
 python compare_segmenters.py   # old vs new masks, every metric
 python threshold_sweep.py      # the >=15 rule, at every threshold
+python fig5_threshold.py       # that sweep as a figure -> fig5_threshold.png
 
 # the figures, on the good masks, with every species let in
 METRICS=fish_metrics_isnet.csv MINIMG=1 python fig4_fish_gallery.py
@@ -248,6 +258,7 @@ regenerable.
 | `features_isnet.py` | the same 13 metrics, re-measured through the cut-out quality bar → `fish_metrics_isnet.csv` |
 | `compare_segmenters.py` | old vs new masks, every metric — does the segmenter change the answer? |
 | `threshold_sweep.py` | the ≥15-photo rule at every threshold, plus a √photos-weighted alternative |
+| `fig5_threshold.py` → `fig5_threshold.png` | that sweep as a figure: ρ vs the bar, old masks vs new |
 | `phylo.py` | PGLS / Pagel's λ against the Fish Tree of Life |
 | `sex_probe.py`, `fetch_sexed.py`, `sexed_analyze.py` | the sex-annotated subset and dichromatism |
 | `clean_figures.py` | the three analytical figures |

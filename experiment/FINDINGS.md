@@ -41,8 +41,10 @@ p-hacking looks like. So here is the effect at *every* bar, rather than a defenc
 | ρ (new masks) | +0.20 | +0.25 | +0.27 | +0.31 | +0.38 | +0.40 | +0.41 |
 | p | 0.016 | 0.004 | 0.002 | 0.0004 | <0.0001 | <0.0001 | <0.0001 |
 
-The curve is **monotone attenuation toward zero as the bar drops, with no sign flip and no
-threshold at which the effect appears from nowhere**. That is the signature of measurement
+Plotted in `fig5_threshold.png`, and draggable in the interactive gallery (the data-quality
+slider refits the line, the bootstrap band and ρ live on whoever survives the bar).
+The curve is **monotone attenuation toward zero as the bar drops, significant at every bar
+from 1 to 25, with no sign flip and no threshold at which the effect appears from nowhere**. That is the signature of measurement
 noise diluting a real effect — a species' score is a median over n photos, and at n=1 that
 "median" is one photo, where a fish photographed in a bucket counts the same as a portrait.
 It is *not* the signature of a result conjured by a filter. The honest summary: **the effect
