@@ -43,6 +43,19 @@
          line-height:1.3;transition:.15s}
   #count:empty{margin-top:0}
 
+  /* the photo-count bar: drag it and watch the noisy species drop out */
+  #barbox{margin-top:9px;padding-top:8px;border-top:1px dotted rgba(207,192,163,.8)}
+  #barbox label{display:block;font-size:11.5px;color:var(--muted);margin-bottom:5px}
+  #barbox label b{color:var(--ink);font-weight:600}
+  #minbar{width:100%;-webkit-appearance:none;appearance:none;height:3px;border-radius:2px;
+          background:var(--grid);outline:none;cursor:pointer}
+  #minbar::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;
+          background:var(--accent);cursor:pointer;border:2px solid var(--paper)}
+  #minbar::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--accent);
+          cursor:pointer;border:2px solid var(--paper)}
+  #barbox .scale{display:flex;justify-content:space-between;margin-top:3px;
+                 font-size:10px;color:#a99e88;font-style:italic}
+
   /* legend: a strip along the bottom, out of the fishes' way */
   /* left:0;right:0 + auto margins, so it can size itself against the FULL window
      (with left:50% alone a fixed box shrink-wraps into the right half and wraps early) */
@@ -141,6 +154,11 @@
 <div class="panel" id="find">
   <input id="search" type="search" placeholder="find a fish — name, or family…" autocomplete="off" spellcheck="false">
   <div id="count"></div>
+  <div id="barbox">
+    <label for="minbar">data-quality bar — <span id="barlabel"></span></label>
+    <input id="minbar" type="range" min="1" max="25" step="1" value="1">
+    <div class="scale"><span>let everything in</span><span>only the best-photographed</span></div>
+  </div>
 </div>
 
 <div class="panel" id="legend"></div>
@@ -198,10 +216,6 @@ const FISH = D.fish.filter(f => f.im);
 const ORDER = FISH.map((_,i) => i).sort((a,b) =>
   (FISH[b].w*FISH[b].h) - (FISH[a].w*FISH[a].h));
 
-const pstr = D.p < 0.001 ? 'p &lt; 0.001' : `p = ${D.p.toFixed(3)}`;   // never hard-code the p-value
-$('#subtitle').innerHTML =
-  `each fish sits at its own mate-choice and colour-variety · <b>${D.n} species</b> · ` +
-  `the palette widens rightward (ρ = <b>${D.rho >= 0 ? '+' : ''}${D.rho.toFixed(2)}</b>, ${pstr})`;
 $('#loading .t').textContent = `catching ${D.n} fish…`;
 
 // ------------------------------------------------------------------- state
@@ -209,6 +223,103 @@ const M = {l:76, r:30, t:126, b:96};                // plot margins (px) — cle
 let W = 0, H = 0, P = {x:0,y:0,w:0,h:0}, dpr = 1;
 let k = 1, tx = 0, ty = 0;                          // zoom + pan, on top of the fit
 let hover = -1, pinned = -1, query = '', off = new Set();
+let minPhotos = 1;                                  // the photo-count bar, dragged by the slider
+let T = D.trend;                                    // recomputed in-browser whenever the bar moves
+
+// ---------------------------------------------------- statistics, recomputed live
+// The whole point of the slider is to see what the >=N-photo rule does to the answer,
+// so the trend line, its bootstrap CI and rho must all be recomputed from the species
+// that survive the bar — not read from a table baked in at build time.
+const XS = [];
+for (let i = 0; i <= 199; i++) XS.push(X0 + (X1-X0)*i/199);
+
+function ranks(v){                                   // average ranks, so ties don't bias rho
+  const idx = v.map((x,i) => i).sort((a,b) => v[a]-v[b]);
+  const r = new Array(v.length);
+  for (let i = 0; i < idx.length;){
+    let j = i; while (j+1 < idx.length && v[idx[j+1]] === v[idx[i]]) j++;
+    const avg = (i + j)/2 + 1;
+    for (let t = i; t <= j; t++) r[idx[t]] = avg;
+    i = j + 1;
+  }
+  return r;
+}
+function pearson(a, b){
+  const n = a.length, ma = a.reduce((s,x)=>s+x,0)/n, mb = b.reduce((s,x)=>s+x,0)/n;
+  let sab = 0, sa = 0, sb = 0;
+  for (let i = 0; i < n; i++){ const da = a[i]-ma, db = b[i]-mb; sab += da*db; sa += da*da; sb += db*db; }
+  return sab/Math.sqrt(sa*sb || 1e-12);
+}
+// two-sided p for a correlation, via the t approximation — good enough at these n
+function pOf(r, n){
+  if (n < 4) return 1;
+  const t = Math.abs(r)*Math.sqrt((n-2)/Math.max(1-r*r, 1e-12));
+  // Student-t survival via an incomplete-beta continued fraction would be overkill;
+  // for n > 30 the normal approximation to t is accurate to well under a p of 0.001
+  const z = t*(1 - 1/(4*(n-2)))/Math.sqrt(1 + t*t/(2*(n-2)));
+  return 2*(1 - 0.5*(1 + erf(z/Math.SQRT2)));
+}
+function erf(x){                                     // Abramowitz & Stegun 7.1.26
+  const s = Math.sign(x); x = Math.abs(x);
+  const t = 1/(1 + 0.3275911*x);
+  const y = 1 - (((((1.061405429*t - 1.453152027)*t) + 1.421413741)*t - 0.284496736)*t + 0.254829592)*t*Math.exp(-x*x);
+  return s*y;
+}
+function fitLine(x, y){
+  const n = x.length, mx = x.reduce((s,v)=>s+v,0)/n, my = y.reduce((s,v)=>s+v,0)/n;
+  let sxy = 0, sxx = 0;
+  for (let i = 0; i < n; i++){ sxy += (x[i]-mx)*(y[i]-my); sxx += (x[i]-mx)**2; }
+  const b1 = sxy/(sxx || 1e-12);
+  return [my - b1*mx, b1];
+}
+let seed = 5;
+const rnd = () => (seed = (seed*1103515245 + 12345) & 0x7fffffff)/0x7fffffff;
+
+function recompute(){
+  const set = FISH.filter(f => f.n_images >= minPhotos);
+  const n = set.length;
+  if (n < 4){ T = null; return {n, rho: NaN, p: NaN}; }
+  const x = set.map(f => f.mci), y = set.map(f => f.hue_entropy);
+  const [b0, b1] = fitLine(x, y);
+  const fit = XS.map(v => b0 + b1*v);
+
+  let ss = 0;
+  for (let i = 0; i < n; i++) ss += (y[i] - (b0 + b1*x[i]))**2;
+  const sd = Math.sqrt(ss/Math.max(n-2, 1));
+
+  const B = 400, curves = [];                        // bootstrap CI of the line itself
+  for (let b = 0; b < B; b++){
+    const bx = [], by = [];
+    for (let i = 0; i < n; i++){ const j = (rnd()*n)|0; bx.push(x[j]); by.push(y[j]); }
+    const [c0, c1] = fitLine(bx, by);
+    curves.push(XS.map(v => c0 + c1*v));
+  }
+  const lo = [], hi = [];
+  for (let i = 0; i < XS.length; i++){
+    const col = curves.map(c => c[i]).sort((a,b) => a-b);
+    lo.push(col[Math.floor(0.025*B)]); hi.push(col[Math.floor(0.975*B)]);
+  }
+  T = {x: XS, fit, lo, hi,
+       sdLo: fit.map(v => v - sd), sdHi: fit.map(v => v + sd)};
+
+  // Spearman = Pearson on ranks
+  const rho = pearson(ranks(x), ranks(y));
+  return {n, rho, p: pOf(rho, n)};
+}
+
+function caption(){
+  const {n, rho, p} = recompute();
+  const pstr = !isFinite(p) ? '—' : p < 0.001 ? 'p &lt; 0.001' : `p = ${p.toFixed(3)}`;
+  const bar = minPhotos <= 1
+    ? 'every species with a cut-out'
+    : `only the <b>${n}</b> species measured on ≥ ${minPhotos} clean photos`;
+  $('#subtitle').innerHTML =
+    `each fish sits at its own mate-choice and colour-variety · ${bar} · ` +
+    `the palette widens rightward (ρ = <b>${rho >= 0 ? '+' : ''}${rho.toFixed(2)}</b>, ${pstr})`;
+  $('#barlabel').innerHTML = minPhotos <= 1
+    ? `<b>all ${FISH.length} fish</b> — no photo-count bar`
+    : `<b>≥ ${minPhotos} photos</b> — ${FISH.length - n} fish greyed out`;
+}
 
 const K_MAX = 10;      // beyond this the cut-outs run out of pixels
 const clamp = (v,a,b) => v < a ? a : v > b ? b : v;
@@ -245,7 +356,12 @@ const fishSize = f => {
 const visible = f => !off.has(f.mode);
 const matches = f => !query ||
   (f.common + ' ' + f.scientific + ' ' + f.family + ' ' + f.mode).toLowerCase().includes(query);
-const dim = f => !visible(f) || !matches(f);
+const belowBar = f => f.n_images < minPhotos;      // excluded from the statistics by the slider
+// greyed out on the canvas...
+const dim = f => !visible(f) || !matches(f) || belowBar(f);
+// ...but a fish dropped by the bar is still worth hovering — that is how you find out it
+// rests on a single photo. Only the mode/search filters make a fish un-hoverable.
+const pickable = f => visible(f) && matches(f);
 
 // -------------------------------------------------------------------- draw
 const XTICKS = [0,2,4,6,8,10], YTICKS = [1.5,2,2.5,3,3.5,4];
@@ -269,7 +385,7 @@ function draw(){
   ctx.stroke(); ctx.globalAlpha = 1;
 
   // trend: ±1 SD veil, bootstrap CI ribbon, then the line in a paper casing
-  const T = D.trend;
+  if (!T){ ctx.restore(); axes(); return; }
   const band = (lo, hi, alpha) => {
     ctx.beginPath();
     T.x.forEach((xv,i) => i ? ctx.lineTo(SX(xv), SY(hi[i])) : ctx.moveTo(SX(xv), SY(hi[i])));
@@ -314,7 +430,7 @@ function paintFish(f, hot){
   const x = SX(f.x) - w*s/2, y = SY(f.y) - h*s/2;
   if (x > P.x + P.w || x + w*s < P.x || y > P.y + P.h || y + h*s < P.y) return;   // offscreen
   const faded = dim(f);
-  ctx.globalAlpha = faded ? .14 : 1;
+  ctx.globalAlpha = faded ? (hot ? .6 : .14) : 1;   // a greyed-out fish still surfaces when hovered
 
   if (!faded){
     ctx.save();
@@ -375,7 +491,7 @@ function shade(hex, f){
 function hit(px, py){
   for (let j = ORDER.length - 1; j >= 0; j--) {     // topmost first
     const f = FISH[ORDER[j]];
-    if (dim(f)) continue;
+    if (!pickable(f)) continue;
     const {w, h} = fishSize(f);
     const u = (px - (SX(f.x) - w/2))/w, v = (py - (SY(f.y) - h/2))/h;
     if (u < 0 || u >= 1 || v < 0 || v >= 1) continue;
@@ -557,6 +673,12 @@ $('#search').addEventListener('input', e => {
   query = e.target.value.trim().toLowerCase();
   hover = -1; tally(); draw();
 });
+
+$('#minbar').addEventListener('input', e => {
+  minPhotos = +e.target.value;
+  caption();          // refits the line, the CI and rho on the survivors
+  tally(); draw();
+});
 function tally(){
   const n = FISH.filter(f => !dim(f)).length;
   $('#count').textContent = (query || off.size)
@@ -564,6 +686,7 @@ function tally(){
 }
 
 addEventListener('resize', resize);
+caption();                      // fits the trend to the fish actually on screen
 resize();
 openFromHash();
 addEventListener('hashchange', openFromHash);
